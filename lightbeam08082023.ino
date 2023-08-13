@@ -33,7 +33,7 @@ void setup() {
 void loop() {
 
   int dispatchButtonState = digitalRead(dispatchButtonPin);
-  int enableButtonState = digitalRead(dispatchButtonPin);
+  int enableButtonState = digitalRead(enableButtonPin);
   int ldrStatus = analogRead(LDRPin);
 
   if (dispatchButtonState == LOW) {
