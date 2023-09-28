@@ -30,7 +30,7 @@ void setup() {
 void loop() {
   // Loop through all 16 channels
   int powerState = 0;
-
+  int enableState = 0;
 
   for (int channel = 0; channel < 16; channel++) {
     // Select the current channel on the multiplexer
@@ -54,13 +54,14 @@ void loop() {
         
         if(channel == enableChannel){
           Serial.println("Enable button was pressed");
+          enableState = 1;
         }
 
         if(channel == resetChannel){
           Serial.println("Reset button was pressed");
         }
 
-        if(channel == dispatchChannel){
+        if(channel == dispatchChannel && enableState == 1){
           Serial.println("Dispatch button was pressed");
         }
 
@@ -71,7 +72,7 @@ void loop() {
 
     }
 
-    delay(20);
+    delay(10);
   }
 
   if(powerState == 0){
