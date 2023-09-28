@@ -4,7 +4,7 @@ const int s2 = 10;
 const int s3 = 11;
 
 // Define the signal pin for the multiplexer
-const int SIG_PIN = A0; // Connect this to the SIG pin of the multiplexer
+const int SIG_PIN = A5; // Connect this to the SIG pin of the multiplexer
 const int estopChannel = 6;
 const int keyChannel = 1;
 const int enableChannel = 2;
