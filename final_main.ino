@@ -213,7 +213,7 @@ void loop() {
           Serial.println("Dispatch button was pressed while enable was held");
         }
         
-        if(channel == resetChannel){
+        if(channel == resetChannel && enableState == 1){
           Serial.println("Reset button was pressed");
         }
 
