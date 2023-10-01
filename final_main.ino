@@ -36,6 +36,7 @@ unsigned long updateInterval = 200;
 
 bool isStopped=false;
 bool pattern1_isStopped=false;
+bool estopCleared = true;
 
 struct Zone_Info {
     bool isOccupied;
@@ -160,7 +161,7 @@ void loop() {
 
     FastLED.show();
 
-    if(isStopped==false || pattern1_isStopped==false)
+    if(isStopped==false && pattern1_isStopped==false && estopCleared)
     {
       pattern1Position = (pattern1Position + 1) % NUM_LEDS;
     }
@@ -178,7 +179,7 @@ void loop() {
     // Read the button state from the current channel
     int buttonState = digitalRead(SIG_PIN);
     
-    if(channel == 1){
+    /*if(channel == 1){
       int sensorValue = analogRead(SIG_PIN_2);
 
 
@@ -186,7 +187,7 @@ void loop() {
     Serial.print(channel);
     Serial.print(": ");
     Serial.println(sensorValue);
-    }
+    }*/
     
 
     if(buttonState == HIGH)
@@ -201,6 +202,8 @@ void loop() {
 
         if(channel == estopChannel){
           Serial.println("Estop was pressed");
+          estopCleared = false;
+          stopAllVehicles();
     
         }
         
@@ -209,12 +212,14 @@ void loop() {
           enableState = 1;
         }
 
-        if(channel == dispatchChannel && enableState == 1){
+        if(channel == dispatchChannel && enableState == 1 && estopCleared){
           Serial.println("Dispatch button was pressed while enable was held");
+          moveAllVehicles();
         }
         
         if(channel == resetChannel && enableState == 1){
           Serial.println("Reset button was pressed");
+          estopCleared = true;
         }
 
         
@@ -231,6 +236,7 @@ void loop() {
 
   if(powerState == 0){
     digitalWrite(powerLED, LOW);
+    stopAllVehicles();
   }
   }
   
