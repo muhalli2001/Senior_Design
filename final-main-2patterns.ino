@@ -321,8 +321,42 @@ void loop() {
         if(channel == zone3beg && zone2endSensor == false)
         {
           // busy zone 3
-
+          zone3.isOccupied = true;
           // clear zone 2
+          zone2.isOccupied = false;
+        }
+        if(channel == zone3end)
+        {
+            zone3endSensor=true;
+        }
+        if(channel == zone4beg && zone3endSensor == false)
+        {
+            // busy zone 4
+            zone4.isOccupied = true;
+            // clear zone 3
+            zone3.isOccupied = false;
+        }
+        if(channel == zone4end)
+        {
+            zone4endSensor=true;
+        }
+        if(channel == zone5beg && zone4endSensor==false)
+        {
+            // busy zone 5
+            zone5.isOccupied = true;
+            // clear zone 4
+            zone4.isOccupied = false;
+        }
+        if(channel == zone5end)
+        {
+            zone5endSensor=true;
+        }
+        if(channel == zone6beg && zone5endSensor == false)
+        {
+            // busy zone 6
+            zone6.isOccupied = true;
+            // clear zone 5
+            zone5.isOccupied = false;
         }
         if(channel == zone6end)
         {
@@ -418,8 +452,54 @@ void loop() {
     {
       MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
     }
-    
-
+    if(zone6.isOccupied)
+    {
+        StopVehicle(zone5.zoneBegin, zone5.zoneEnd);
+    }
+    if(!zone6.isOccupied)
+    {
+        MoveVehicle(zone5.zoneBegin, zone5.zoneEnd);
+    }
+    if(zone5.isOccupied)
+    {
+        StopVehicle(zone4.zoneBegin, zone4.zoneEnd);
+    }
+    if(!zone5.isOccupied)
+    {
+        MoveVehicle(zone4.zoneBegin, zone4.zoneEnd);
+    }
+    if(zone4.isOccupied)
+    {
+        StopVehicle(zone3.zoneBegin, zone3.zoneEnd);
+    }
+    if(!zone4.isOccupied)
+    {
+       MoveVehicle(zone3.zoneBegin, zone3.zoneEnd); 
+    }
+    if(zone3.isOccupied)
+    {
+        StopVehicle(zone2.zoneBegin, zone2.zoneEnd);
+    }
+    if(!zone3.isOccupied)
+    {
+        MoveVehicle(zone2.zoneBegin, zone2.zoneEnd);
+    }
+    if(zone2.isOccupied)
+    {
+        StopVehicle(zone1.zoneBegin, zone1.zoneEnd);
+    }
+    if(!zone2.isOccupied)
+    {
+        MoveVehicle(zone1.zoneBegin, zone1.zoneEnd);
+    }
+    if(zone1.isOccupied)
+    {
+        StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+    }
+    if(!zone1.isOccupied)
+    {
+        MoveVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+    }
     if(buttonState == HIGH)
     {
       if(channel == keyChannel){
