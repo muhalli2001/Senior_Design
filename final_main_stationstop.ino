@@ -45,6 +45,8 @@ bool zone1endSensor = false;
 bool zone2beginSensor = false;
 bool zone2endSensor = false;
 bool zone3beginSensor = false;
+bool zone3endSensor = false;
+bool zone4beginSensor = false;
 bool zone4endSensor = false;
 bool zone5beginSensor = false;
 bool zone5endSensor = false;
@@ -79,7 +81,7 @@ Zone_Info zone3;
 Zone_Info zone4;
 Zone_Info zone5;
 Zone_Info zone6;
-Zone_Info zone7;
+Zone_Info zone_station;
 
 int SearchVehicle(int zoneBegin, int zoneEnd)
 {
@@ -189,9 +191,9 @@ void setup() {
   zone6.zoneBegin=100;
   zone6.zoneEnd=119;
 
-  zone7.isOccupied=false;
-  zone7.zoneBegin=120;
-  zone7.zoneEnd=139;
+  zone_station.isOccupied=false;
+  zone_station.zoneBegin=120;
+  zone_station.zoneEnd=139;
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
@@ -279,7 +281,7 @@ void loop() {
         if(channel == zone7beg && zone6endSensor == false)
         {
           // busy zone 7 (station)
-          zone7.isOccupied = true;
+          zone_station.isOccupied = true;
           // clear zone 6
           zone6.isOccupied = false;
         }
@@ -292,7 +294,7 @@ void loop() {
           // busy zone 1
           zone1.isOccupied = true;
           // clear zone 7 (station)
-          zone7.isOccupied = false;
+          zone_station.isOccupied = false;
         }
 
     }
@@ -308,7 +310,7 @@ void loop() {
       }
       if(channel == zone2beg)
       {
-        zone2begSensor=false;
+        zone2beginSensor=false;
       }
       if(channel == zone2end)
       {
@@ -330,7 +332,7 @@ void loop() {
       {
         zone4endSensor=false;
       }
-      if(channel == zone5begin)
+      if(channel == zone5beg)
       {
         zone5beginSensor=false;
       }
@@ -385,7 +387,7 @@ void loop() {
         }
 
         if(channel == dispatchChannel && enableState == 1 && stationStopCleared && !zone1.isOccupied){
-          MoveVehicle(zone_station_begin,zone_station_end);
+          MoveVehicle(zone_station.zoneBegin,zone_station.zoneEnd);
         }
         
         if(channel == resetChannel && enableState == 1){
@@ -396,7 +398,7 @@ void loop() {
 
         if(channel == stationChannel){
           Serial.println("Station stop was pressed");
-          StopVehicle(zone_station_begin, zone_station_end);
+          StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
           stationStopCleared = false;
         }
       }
