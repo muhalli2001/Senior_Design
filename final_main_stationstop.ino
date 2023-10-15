@@ -25,6 +25,34 @@ const int dispatchChannel = 4;
 const int stationChannel = 5;
 const int powerLED = 7;
 
+const int zone1beg = 14;
+const int zone1end = 1;
+const int zone2beg = 2;
+const int zone2end = 3;
+const int zone3beg = 4;
+const int zone3end = 5;
+const int zone4beg = 6;
+const int zone4end = 7;
+const int zone5beg = 8;
+const int zone5end = 9;
+const int zone6beg = 10;
+const int zone6end = 11;
+const int zone7beg = 12;
+const int zone7end = 13;
+
+bool zone1beginSensor = false;
+bool zone1endSensor = false;
+bool zone2beginSensor = false;
+bool zone2endSensor = false;
+bool zone3beginSensor = false;
+bool zone4endSensor = false;
+bool zone5beginSensor = false;
+bool zone5endSensor = false;
+bool zone6beginSensor = false;
+bool zone6endSensor = false;
+bool zone7beginSensor = false;
+bool zone7endSensor = false;
+
 const int SIG_PIN_2 = A0;
 
 CRGB leds[NUM_LEDS];
@@ -219,11 +247,113 @@ void loop() {
     
     if(sensorValue>900)
     {
-        Serial.print("channel ");
-        Serial.print(channel);
-        Serial.print(" tripped at ");
+        Serial.println("channel");
+        Serial.println(channel);
+        Serial.println("tripped");
         Serial.println(sensorValue);
+        if(channel == zone1end)
+        {
+          zone1endSensor=true;
+        }
+        if(channel == zone2beg && zone1endSensor == false)
+        {
+          //busy zone2
+          zone2.isOccupied = true;
+          //clear zone1
+          zone1.isOccupied = false;
+        }
+        if(channel == zone2end)
+        {
+          zone2endSensor=true;
+        }
+        if(channel == zone3beg && zone2endSensor == false)
+        {
+          // busy zone 3
 
+          // clear zone 2
+        }
+        if(channel == zone6end)
+        {
+          zone6endSensor = true;
+        }
+        if(channel == zone7beg && zone6endSensor == false)
+        {
+          // busy zone 7 (station)
+          zone7.isOccupied = true;
+          // clear zone 6
+          zone6.isOccupied = false;
+        }
+        if(channel == zone7end)
+        {
+          zone7endSensor=true;
+        }
+        if(channel == zone1beg && zone7end == false)
+        {
+          // busy zone 1
+          zone1.isOccupied = true;
+          // clear zone 7 (station)
+          zone7.isOccupied = false;
+        }
+
+    }
+    else
+    {
+      if(channel == zone1beg)
+      {
+        zone1beginSensor=false;
+      }
+      if(channel == zone1end)
+      {
+        zone1endSensor=false;
+      }
+      if(channel == zone2beg)
+      {
+        zone2begSensor=false;
+      }
+      if(channel == zone2end)
+      {
+        zone2endSensor=false;
+      }
+      if(channel == zone3beg)
+      {
+        zone3beginSensor=false;
+      }
+      if(channel == zone3end)
+      {
+        zone3endSensor=false;
+      }
+      if(channel == zone4beg)
+      {
+        zone4beginSensor=false;
+      }
+      if(channel == zone4end)
+      {
+        zone4endSensor=false;
+      }
+      if(channel == zone5begin)
+      {
+        zone5beginSensor=false;
+      }
+      if(channel == zone5end)
+      {
+        zone5endSensor=false;
+      }
+      if(channel == zone6beg)
+      {
+        zone6beginSensor=false;
+      }
+      if(channel == zone6end)
+      {
+        zone6endSensor=false;
+      }
+      if(channel == zone7beg)
+      {
+        zone7beginSensor = false;
+      }
+      if(channel == zone7endSensor)
+      {
+        zone7endSensor = false;
+      }
     }
     
 
