@@ -312,6 +312,7 @@ void loop() {
         {
           // busy zone 7 (station)
           zone_station.isOccupied = true;
+          Serial.println("**station is occupied");
           // clear zone 6
           zone6.isOccupied = false;
         }
@@ -325,6 +326,7 @@ void loop() {
           zone1.isOccupied = true;
           // clear zone 7 (station)
           zone_station.isOccupied = false;
+          Serial.println("**station is clear");
         }
 
     }
@@ -386,6 +388,15 @@ void loop() {
       {
         zone7endSensor = false;
       }
+    }
+
+    if(zone_station.isOccupied)
+    {
+      StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
+    }
+    if(!zone_station.isOccupied)
+    {
+      MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
     }
     
 
