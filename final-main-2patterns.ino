@@ -279,10 +279,30 @@ void loop() {
     
     if(sensorValue>900)
     {
-        Serial.println("channel");
+        /*Serial.println("channel");
         Serial.println(channel);
         Serial.println("tripped");
-        Serial.println(sensorValue);
+        Serial.println(sensorValue);*/
+        Serial.print("zone 1 occupied: ");
+        Serial.println(zone1.isOccupied);
+
+        Serial.print("zone 2 occupied: ");
+        Serial.println(zone2.isOccupied);
+
+        Serial.print("zone 3 occupied: ");
+        Serial.println(zone3.isOccupied);
+
+        Serial.print("zone 4 occupied: ");
+        Serial.println(zone4.isOccupied);
+
+        Serial.print("zone 5 occupied: ");
+        Serial.println(zone5.isOccupied);
+
+        Serial.print("zone 6 occupied: ");
+        Serial.println(zone6.isOccupied);
+
+        Serial.print("zone station occupied: ");
+        Serial.println(zone_station.isOccupied);
         if(channel == zone1end)
         {
           zone1endSensor=true;
