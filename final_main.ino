@@ -1,7 +1,7 @@
 #include <FastLED.h>
 
 #define LED_PIN 6
-#define NUM_LEDS 120
+#define NUM_LEDS 140
 
 #define VEHICLE_SIZE 4
 
@@ -25,11 +25,46 @@ const int dispatchChannel = 4;
 const int stationChannel = 5;
 const int powerLED = 7;
 
+const int zone1beg = 14;
+const int zone1end = 1;
+const int zone2beg = 2;
+const int zone2end = 3;
+const int zone3beg = 4;
+const int zone3end = 5;
+const int zone4beg = 6;
+const int zone4end = 7;
+const int zone5beg = 8;
+const int zone5end = 9;
+const int zone6beg = 10;
+const int zone6end = 11;
+const int zone7beg = 12;
+const int zone7end = 13;
+
+bool zone1beginSensor = false;
+bool zone1endSensor = false;
+bool zone2beginSensor = false;
+bool zone2endSensor = false;
+bool zone3beginSensor = false;
+bool zone3endSensor = false;
+bool zone4beginSensor = false;
+bool zone4endSensor = false;
+bool zone5beginSensor = false;
+bool zone5endSensor = false;
+bool zone6beginSensor = false;
+bool zone6endSensor = false;
+bool zone7beginSensor = false;
+bool zone7endSensor = false;
+
 const int SIG_PIN_2 = A0;
 
 CRGB leds[NUM_LEDS];
 CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::White}; 
-int pattern1Position = 1;
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
+
+int pattern1Position = 0;
+
+// The second pattern begins at the end of the strip
+int pattern2Position = 20;
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 200; 
 
@@ -37,6 +72,8 @@ unsigned long updateInterval = 200;
 bool isStopped=false;
 bool pattern1_isStopped=false;
 bool estopCleared = true;
+bool stationStopCleared = true;
+bool pattern2_isStopped = false;
 
 struct Zone_Info {
     bool isOccupied;
@@ -46,12 +83,21 @@ struct Zone_Info {
 
 Zone_Info zone1; 
 Zone_Info zone2;
+Zone_Info zone3;
+Zone_Info zone4;
+Zone_Info zone5;
+Zone_Info zone6;
+Zone_Info zone_station;
 
 int SearchVehicle(int zoneBegin, int zoneEnd)
 {
     if(pattern1Position>zoneBegin && pattern1Position<zoneEnd)
     {
       return 1;
+    }
+    else if(pattern2Position>zoneBegin && pattern2Position < zoneEnd)
+    {
+      return 2;
     }
     else
     {
@@ -72,6 +118,10 @@ void StopVehicle(int zoneBegin, int zoneEnd)
   {
     pattern1_isStopped=true;
   }
+  if(vehicle==2)
+  {
+    pattern2_isStopped=true;
+  }
 }
 
 void MoveVehicle(int zoneBegin, int zoneEnd)
@@ -84,6 +134,10 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   if(vehicle==1)
   {
     pattern1_isStopped=false;
+  }
+  if(vehicle==2)
+  {
+    pattern2_isStopped=false;
   }
 }
 
@@ -133,24 +187,47 @@ void setup() {
 
   zone1.isOccupied=false;
   zone1.zoneBegin=0;
-  zone1.zoneEnd=38;
+  zone1.zoneEnd=20;
 
   zone2.isOccupied=false;
-  zone2.zoneBegin=39;
-  zone2.zoneEnd=70;
+  zone2.zoneBegin=21;
+  zone2.zoneEnd=40;
+
+  zone3.isOccupied=false;
+  zone3.zoneBegin=41;
+  zone3.zoneEnd=60;
+  
+  zone4.isOccupied=false;
+  zone4.zoneBegin=61;
+  zone4.zoneEnd=80;
+
+  zone5.isOccupied=false;
+  zone5.zoneBegin=81;
+  zone5.zoneEnd=100;
+
+  zone6.isOccupied=false;
+  zone6.zoneBegin=101;
+  zone6.zoneEnd=122;
+
+  zone_station.isOccupied=false;
+  zone_station.zoneBegin=123;
+  zone_station.zoneEnd=140;
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
 
   // Initialize serial communication for debugging
   Serial.begin(9600);
+
+  FastLED.clear();
+
 }
 
 void loop() {
   // Loop through all 16 channels
   unsigned long currentTime = millis();
   int powerState = 0;
-  int enableState = 0;
+  int enableState = 1;
 
   if (currentTime - lastUpdateTime >= updateInterval) {
     FastLED.clear();
@@ -158,6 +235,10 @@ void loop() {
     for (int i = 0; i < VEHICLE_SIZE; i++) {
     leds[(pattern1Position + i) % NUM_LEDS] = pattern1[i];
     }
+
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+      leds[(pattern2Position + i) % NUM_LEDS] = pattern2[i];
+      }
 
     FastLED.show();
 
@@ -169,6 +250,14 @@ void loop() {
     {
       pattern1Position=pattern1Position;
     }
+    if(isStopped==false && pattern2_isStopped==false && estopCleared)
+    {
+      pattern2Position = (pattern2Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern2Position=pattern2Position;
+    }
 
   lastUpdateTime = currentTime;
 
@@ -179,16 +268,196 @@ void loop() {
     // Read the button state from the current channel
     int buttonState = digitalRead(SIG_PIN);
     
-    /*if(channel == 1){
-      int sensorValue = analogRead(SIG_PIN_2);
+    int sensorValue = analogRead(SIG_PIN_2);
 
+    if(sensorValue>900)
+    {
+       Serial.print("Channel ");
+       Serial.print(channel);
+       Serial.print(": ");
+       Serial.println(sensorValue);
 
-    Serial.print("Channel ");
-    Serial.print(channel);
-    Serial.print(": ");
-    Serial.println(sensorValue);
-    }*/
-    
+      if(channel == zone1end)
+      {
+        zone1.isOccupied = false;
+        zone2.isOccupied = true;
+      }
+
+      if(channel == zone1beg)
+      {
+        zone1.isOccupied=true;
+        if(zone2.isOccupied){
+          StopVehicle(zone1.zoneBegin, zone1.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone1.zoneBegin, zone1.zoneEnd);
+        }
+      }
+
+      if(channel == zone2end)
+      {
+        zone2.isOccupied = false;
+        zone3.isOccupied = true;
+      }
+
+      if(channel == zone2beg)
+      {
+        zone2.isOccupied=true;
+        if(zone3.isOccupied){
+          StopVehicle(zone2.zoneBegin, zone2.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone2.zoneBegin, zone2.zoneEnd);
+        }
+      }
+
+    if(channel == zone3end)
+      {
+        zone3.isOccupied = false;
+        zone4.isOccupied = true;
+      }
+
+      if(channel == zone3beg)
+      {
+        zone3.isOccupied=true;
+        if(zone4.isOccupied){
+          StopVehicle(zone3.zoneBegin, zone3.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone3.zoneBegin, zone3.zoneEnd);
+        }
+      }
+
+      if(channel == zone4end)
+      {
+        zone4.isOccupied = false;
+        zone5.isOccupied = true;
+      }
+
+      if(channel == zone4beg)
+      {
+        zone4.isOccupied=true;
+        if(zone5.isOccupied){
+          StopVehicle(zone4.zoneBegin, zone4.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone4.zoneBegin, zone4.zoneEnd);
+        }
+      }
+
+      if(channel == zone5end)
+      {
+        zone5.isOccupied = false;
+        zone6.isOccupied = true;
+      }
+
+      if(channel == zone5beg)
+      {
+        zone5.isOccupied=true;
+        if(zone6.isOccupied){
+          StopVehicle(zone5.zoneBegin, zone5.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone5.zoneBegin, zone5.zoneEnd);
+        }
+      }
+
+      if(channel == zone6end)
+      {
+        zone6.isOccupied = false;
+        zone_station.isOccupied = true;
+      }
+
+      if(channel == zone6beg)
+      {
+        zone6.isOccupied=true;
+        if(zone_station.isOccupied){
+          StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
+        }
+      }
+
+      if(channel == zone7end) 
+      {
+        zone_station.isOccupied = false;
+        zone1.isOccupied = true;
+        Serial.print("station cleared");
+      }
+
+      if(channel == zone7beg)
+      {
+        zone_station.isOccupied=true;
+        if(zone1.isOccupied){
+          StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+        }else
+        {
+          MoveVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+        }
+      }     
+
+    }
+    else
+    {
+      if(channel == zone1beg)
+      {
+        zone1beginSensor=false;
+      }
+      if(channel == zone1end)
+      {
+        zone1endSensor=false;
+      }
+      if(channel == zone2beg)
+      {
+        zone2beginSensor=false;
+      }
+      if(channel == zone2end)
+      {
+        zone2endSensor=false;
+      }
+      if(channel == zone3beg)
+      {
+        zone3beginSensor=false;
+      }
+      if(channel == zone3end)
+      {
+        zone3endSensor=false;
+      }
+      if(channel == zone4beg)
+      {
+        zone4beginSensor=false;
+      }
+      if(channel == zone4end)
+      {
+        zone4endSensor=false;
+      }
+      if(channel == zone5beg)
+      {
+        zone5beginSensor=false;
+      }
+      if(channel == zone5end)
+      {
+        zone5endSensor=false;
+      }
+      if(channel == zone6beg)
+      {
+        zone6beginSensor=false;
+      }
+      if(channel == zone6end)
+      {
+        zone6endSensor=false;
+      }
+      if(channel == zone7beg)
+      {
+        zone7beginSensor = false;
+      }
+      if(channel == zone7endSensor)
+      {
+        zone7endSensor = false;
+      }
+    }
+
 
     if(buttonState == HIGH)
     {
@@ -201,7 +470,7 @@ void loop() {
       if(powerState == 1){
 
         if(channel == estopChannel){
-          Serial.println("Estop was pressed");
+          Serial.println("Estop was jpressed");
           estopCleared = false;
           stopAllVehicles();
     
@@ -216,16 +485,22 @@ void loop() {
           Serial.println("Dispatch button was pressed while enable was held");
           moveAllVehicles();
         }
+
+        if(channel == dispatchChannel && enableState == 1 && stationStopCleared){
+          MoveVehicle(zone_station.zoneBegin,zone_station.zoneEnd);
+          //moveAllVehicles();
+        }
         
         if(channel == resetChannel && enableState == 1){
           Serial.println("Reset button was pressed");
           estopCleared = true;
+          stationStopCleared = true;
         }
-
-        
 
         if(channel == stationChannel){
           Serial.println("Station stop was pressed");
+          StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+          stationStopCleared = false;
         }
       }
 
@@ -241,4 +516,3 @@ void loop() {
   }
   
 }
-
