@@ -1,0 +1,9 @@
+blue wire = key switch
+yellow wire = enable button
+white wire = reset button
+green wire w/0 white tie = dispatch button
+orange w/o ziptie = station stop
+orange with ziptie = estop
+
+green wire with white tie is the led, must be connected to arduino directly
+all black wires go to ground
