@@ -1,0 +1,22 @@
+#include <FastLED.h>
+
+#define LED_PIN 10
+#define LED_COUNT 438
+#define LED_BRIGHTNESS 100  // Adjust the brightness as needed
+
+CRGB leds[LED_COUNT];
+
+void setup() {
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, LED_COUNT);
+  FastLED.setBrightness(LED_BRIGHTNESS);
+  FastLED.show();
+}
+
+void loop() {
+  // Fill all LEDs with red
+  fill_solid(leds, LED_COUNT, CRGB::Red);
+  FastLED.show();
+
+  // You can add a delay here to control the display duration
+  delay(1000);  // Adjust the delay as needed
+}
