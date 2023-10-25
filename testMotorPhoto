@@ -1,0 +1,78 @@
+#include <Servo.h>
+
+// Define servo object
+Servo servo1;
+
+// Define multiplexer 1 control pins
+int s0_1 = 6;
+int s1_1 = 7;
+int s2_1 = 8;
+int s3_1 = 9;
+
+// Define multiplexer 2 control pins
+int s0_2 = 2;
+int s1_2 = 3;
+int s2_2 = 4;
+int s3_2 = 5;
+
+// Define analog input pins
+int photoresistorPin = A1;
+int servoPin = A0; // Connect the servo to Channel 0 (C0) on the second multiplexer
+
+void setup() {
+  // Attach the servo motor to the corresponding pin
+  servo1.attach(servoPin); // Connect servo1 to the specified pin
+
+  // Set the multiplexer control pins as outputs
+  pinMode(s0_1, OUTPUT);
+  pinMode(s1_1, OUTPUT);
+  pinMode(s2_1, OUTPUT);
+  pinMode(s3_1, OUTPUT);
+  pinMode(s0_2, OUTPUT);
+  pinMode(s1_2, OUTPUT);
+  pinMode(s2_2, OUTPUT);
+  pinMode(s3_2, OUTPUT);
+
+  // Initialize Serial communication
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Control the servo motor connected to the second multiplexer (Channel 0)
+  int servoPosition = map(analogRead(servoPin), 0, 1023, 0, 180);
+  servo1.write(servoPosition);
+
+  // Read the photoresistor value from the first multiplexer (Channel 0)
+  int channel_1 = 0;
+  int photoresistorValue = analogReadMux(channel_1);
+
+  // Read the servo value from the second multiplexer (Channel 0)
+  int channel_2 = 0;
+  int servoValue = analogReadMux(channel_2);
+
+  Serial.print("Photoresistor Channel 1: ");
+  Serial.println(photoresistorValue);
+
+  Serial.print("Servo Motor Channel 2: ");
+  Serial.println(servoValue);
+
+  delay(1000);
+}
+
+int analogReadMux(int channel) {
+  // Select the desired multiplexer
+  if (channel < 8) {
+    digitalWrite(s0_1, bitRead(channel, 0));
+    digitalWrite(s1_1, bitRead(channel, 1));
+    digitalWrite(s2_1, bitRead(channel, 2));
+    digitalWrite(s3_1, bitRead(channel, 3));
+  } else {
+    digitalWrite(s0_2, bitRead(channel - 8, 0));
+    digitalWrite(s1_2, bitRead(channel - 8, 1));
+    digitalWrite(s2_2, bitRead(channel - 8, 2));
+    digitalWrite(s3_2, bitRead(channel - 8, 3));
+  }
+
+  // Read and return the analog value
+  return analogRead(photoresistorPin);
+}
