@@ -1,0 +1,28 @@
+int channel = 0; // Change this to the desired channel (0-15)
+
+void setup() {
+  // Initialize the multiplexer control pins
+  pinMode(6, OUTPUT); // S0
+  pinMode(7, OUTPUT); // S1
+  pinMode(8, OUTPUT); // S2
+  pinMode(9, OUTPUT); // S3
+  pinMode(A1, INPUT); // Analog input pin connected to Sig pin of the multiplexer
+  Serial.begin(9600); // Initialize serial communication
+}
+
+void loop() {
+  // Set the multiplexer's S0, S1, S2, and S3 pins to select the desired channel
+  digitalWrite(6, bitRead(channel, 0));
+  digitalWrite(7, bitRead(channel, 1));
+  digitalWrite(8, bitRead(channel, 2));
+  digitalWrite(9, bitRead(channel, 3));
+
+  // Read and print the analog value from the selected channel
+  int sensorValue = analogRead(A1);
+  Serial.print("Channel ");
+  Serial.print(channel);
+  Serial.print(": ");
+  Serial.println(sensorValue);
+
+  delay(1000); // Delay for readability
+}
