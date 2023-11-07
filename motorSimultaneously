@@ -1,0 +1,53 @@
+#include <Servo.h>
+
+Servo servo1;
+Servo servo2;
+
+int s0 = 2;
+int s1 = 3;
+int s2 = 4;
+int s3 = 5;
+int multiplexerSignalPin = A1;
+int servoChannel1 = 2;
+int servoChannel2 = 9;
+
+void setup() {
+  servo1.attach(A1);
+  servo2.attach(A2);  // Make sure to connect servo2 to the correct pin
+
+  pinMode(s0, OUTPUT);
+  pinMode(s1, OUTPUT);
+  pinMode(s2, OUTPUT);
+  pinMode(s3, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int delayBetweenServos = 100;  // Adjust this delay to your preference
+
+  // Control servo 1
+  int servoPosition1 = analogReadMux(servoChannel1);
+  servoPosition1 = map(servoPosition1, 0, 1023, 0, 180);
+  servo1.write(servoPosition1);
+
+  // Wait for a short delay
+  delay(delayBetweenServos);
+
+  // Control servo 2
+  int servoPosition2 = analogReadMux(servoChannel2);
+  servoPosition2 = map(servoPosition2, 0, 1023, 0, 180);
+  servo2.write(servoPosition2);
+
+  // Wait for a short delay
+  delay(delayBetweenServos);
+}
+
+int analogReadMux(int channel) {
+  digitalWrite(s0, bitRead(channel, 0));
+  digitalWrite(s1, bitRead(channel, 1));
+  digitalWrite(s2, bitRead(channel, 2));
+  digitalWrite(s3, bitRead(channel, 3));
+
+  return analogRead(multiplexerSignalPin);
+}
