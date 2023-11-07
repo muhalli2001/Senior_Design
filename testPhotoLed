@@ -2,9 +2,9 @@
 #include <FastLED.h>
 
 // Data for LED is at pin 10 on the microcontroller
-#define LED_PIN      10
-// This is basically the size of the strip, for the one we have 300 is the real maximum
-#define NUM_LEDS     438
+#define LED_PIN 10
+// This is basically the size of the strip, for the one we have, 300 is the real maximum
+#define NUM_LEDS 438
 // On the strip, a vehicle will be 4 LEDs long.
 #define VEHICLE_SIZE 4
 
@@ -12,7 +12,7 @@
 Servo servo1;
 CRGB leds[NUM_LEDS];
 
-// smaller size array for controlling 4 LEDs at a time (vehicles = pattern1 & pattern2)
+// Smaller size array for controlling 4 LEDs at a time (vehicles = pattern1 & pattern2)
 CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::White};
 CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
 
@@ -22,7 +22,7 @@ int pattern1Position = 1;
 // The second pattern begins at the end of the strip
 int pattern2Position = NUM_LEDS - VEHICLE_SIZE;
 
-// These two variables are responsible for updating the movement. Right now, every 200 ms, the patterns move 1 by 1.
+// These two variables are responsible for updating the movement. Right now, every 100 ms, the patterns move 1 by 1.
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 100;
 
@@ -30,44 +30,32 @@ bool isStopped = false;
 bool pattern1_stop = false;
 bool pattern2_stop = false;
 
-// Define multiplexer 1 control pins
-int s0_1 = 6;
-int s1_1 = 7;
-int s2_1 = 8;
-int s3_1 = 9;
-
-// Define multiplexer 2 control pins
-int s0_2 = 2;
-int s1_2 = 3;
-int s2_2 = 4;
-int s3_2 = 5;
+// Define multiplexer control pins
+int s0 = 6;
+int s1 = 7;
+int s2 = 8;
+int s3 = 9;
 
 // Define analog input pins
-int photoresistorPin = A1;
-int servoPin = A0; // Connect the servo to Channel 0 (C0) on the second multiplexer
+int multiplexerSignalPin = A0;
 
 int analogReadMux(int channel);
 
 void setup() {
   // Attach the servo motor to the corresponding pin
-  servo1.attach(servoPin); // Connect servo1 to the specified pin
+  servo1.attach(A3);  // Connect servo1 to the specified pin (A3)
 
   // Set the multiplexer control pins as outputs
-  pinMode(s0_1, OUTPUT);
-  pinMode(s1_1, OUTPUT);
-  pinMode(s2_1, OUTPUT);
-  pinMode(s3_1, OUTPUT);
-  pinMode(s0_2, OUTPUT);
-  pinMode(s1_2, OUTPUT);
-  pinMode(s2_2, OUTPUT);
-  pinMode(s3_2, OUTPUT);
+  pinMode(s0, OUTPUT);
+  pinMode(s1, OUTPUT);
+  pinMode(s2, OUTPUT);
+  pinMode(s3, OUTPUT);
+
+  // Initialize FastLED for controlling the LED strip
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
 
-  // sets the entire strip's brightness to 100. Max: 255
+  // Sets the entire strip's brightness to 255 (max brightness)
   FastLED.setBrightness(255);
-
-  // serial monitor that is able to send and receive messages from the microcontroller (for print statements during runtime)
-  // Helpful for seeing the real-time data from the photoresistors
 
   // Initialize Serial communication
   Serial.begin(9600);
@@ -75,87 +63,104 @@ void setup() {
 
 void loop() {
   // Control the servo motor connected to the second multiplexer (Channel 0)
-  int servoPosition = map(analogRead(servoPin), 0, 1023, 0, 180);
+  int servoPosition = map(analogRead(A3), 0, 1023, 0, 180);
   servo1.write(servoPosition);
 
+  // Set the multiplexer to read from different channels
+
+  int channel_2 = 2;
+  int channel_3 = 3;
+  int channel_4 = 4;
+
+  int channel_5 = 5;
+  int channel_6 = 6;
+  int channel_7 = 7;
+  int channel_8 = 8;
+  int channel_9 = 9;
+  int channel_10 = 10;
+  int channel_11 = 11;
+  int channel_12 = 12;
+  int channel_13 = 13;
+  int channel_14 = 14;
+  int channel_15 = 15;
+
+
+
+
+
+  // Read and print the values from the three photoresistors on different channels
   
+  int photoresistorValue1 = analogReadMux(channel_2);
+  int photoresistorValue2 = analogReadMux(channel_3);
+  int photoresistorValue3 = analogReadMux(channel_4);
+  int photoresistorValue4 = analogReadMux(channel_5);
+  int photoresistorValue5 = analogReadMux(channel_6);
+  int photoresistorValue6 = analogReadMux(channel_7);
+  int photoresistorValue7 = analogReadMux(channel_8);
+  int photoresistorValue8 = analogReadMux(channel_9);
+  int photoresistorValue9 = analogReadMux(channel_10);
+  int photoresistorValue10= analogReadMux(channel_11);
+  int photoresistorValue11= analogReadMux(channel_12);
+  int photoresistorValue12= analogReadMux(channel_13);
+  int photoresistorValue13= analogReadMux(channel_14);
+  int photoresistorValue14= analogReadMux(channel_15);
+
+
+  Serial.print("Photoresistor Channel : ");
+  Serial.println(photoresistorValue11);
+  // Serial.print("Photoresistor Channel 1: ");
+  // Serial.println(photoresistorValue1);
+  // Serial.print("Photoresistor Channel 2: ");
+  // Serial.println(photoresistorValue2);
+
+  // Delay for readability
+  delay(1000);
 
   // Gets the current time in milliseconds since the program began running
   unsigned long currentTime = millis();
 
-  // update pattern every X milliseconds
+  // Update pattern every X milliseconds
   if (currentTime - lastUpdateTime >= updateInterval) {
-    // clear the entire strip. Won't display the clear, only clears Array Data
+    // Clear the entire strip (only clears the array data)
     FastLED.clear();
 
     // This is temporary. If all vehicles can move & the current pattern can move, allow the pattern to be updated.
     if (isStopped == false) {
-      // iterates 4 times
+      // Iterate 4 times
       for (int i = 0; i < VEHICLE_SIZE; i++) {
-        // updates the patterns one by one with this logic:
-        // get the current position stored in pattern1Position
-        // add i to it to get the right part of the vehicle [0][1][2][3][patternPosition][patternPosition+1][patternPosition+2][patternPosition+3][8][9][10]
+        // Update the patterns one by one with this logic:
+        // Get the current position stored in pattern1Position
+        // Add i to it to get the right part of the vehicle
         leds[(pattern1Position + i) % NUM_LEDS] = pattern1[i];
       }
     }
 
     // Same logic, now for pattern 2. If all vehicles can move & the current pattern can move, allow the pattern to be updated.
     if (isStopped == false) {
-      // same logic as pattern1, just now updating pattern2
+      // Same logic as pattern1, just now updating pattern2
       for (int i = 0; i < VEHICLE_SIZE; i++) {
         leds[(pattern2Position + i) % NUM_LEDS] = pattern2[i];
       }
     }
 
-    // display the updated pattern to the strip
+    // Display the updated pattern to the strip
     FastLED.show();
 
     if (isStopped == false) {
-      // If the patterns can move, we can update the positions
+      // If the patterns can move, update the positions
       pattern1Position = (pattern1Position + 1) % NUM_LEDS;
       pattern2Position = (pattern2Position + 1) % NUM_LEDS;
-    } else {
-      // don't update the pattern position if they are stopped.
-      pattern1Position = pattern1Position;
-      pattern2Position = pattern2Position;
-      // continue;
     }
-
-    // Update the time
-    lastUpdateTime = currentTime;
-
-    // Read the photoresistor value from the first multiplexer (Channel 0)
-  int channel_1 = 0;
-  int photoresistorValue = analogReadMux(channel_1);
-
-  // Read the servo value from the second multiplexer (Channel 0)
-  int channel_2 = 0;
-  int servoValue = analogReadMux(channel_2);
-
-  Serial.print("Photoresistor Channel 1: ");
-  Serial.println(photoresistorValue);
-
-  Serial.print("Servo Motor Channel 2: ");
-  Serial.println(servoValue);
-
-  delay(1000);
   }
 }
 
 int analogReadMux(int channel) {
   // Select the desired multiplexer
-  if (channel < 8) {
-    digitalWrite(s0_1, bitRead(channel, 0));
-    digitalWrite(s1_1, bitRead(channel, 1));
-    digitalWrite(s2_1, bitRead(channel, 2));
-    digitalWrite(s3_1, bitRead(channel, 3));
-  } else {
-    digitalWrite(s0_2, bitRead(channel - 8, 0));
-    digitalWrite(s1_2, bitRead(channel - 8, 1));
-    digitalWrite(s2_2, bitRead(channel - 8, 2));
-    digitalWrite(s3_2, bitRead(channel - 8, 3));
-  }
+  digitalWrite(s0, bitRead(channel, 0));
+  digitalWrite(s1, bitRead(channel, 1));
+  digitalWrite(s2, bitRead(channel, 2));
+  digitalWrite(s3, bitRead(channel, 3));
 
   // Read and return the analog value
-  return analogRead(photoresistorPin);
+  return analogRead(multiplexerSignalPin);
 }
