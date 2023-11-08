@@ -1,0 +1,54 @@
+#include <Servo.h>
+
+Servo servo1;  // Create a servo object
+
+// Define multiplexer control pins
+int s0 = 2;
+int s1 = 3;
+int s2 = 4;
+int s3 = 5;
+
+// Define analog input pin for multiplexer's common signal
+int multiplexerSignalPin = A1;
+
+// Define the channel for the servo on the multiplexer
+int servoChannel = 15;
+
+void setup() {
+  // Attach the servo motor to the corresponding pin
+  servo1.attach(A1);  // Connect servo1 to the specified pin (C1) on multiplexer, Channel 9
+
+  // Set the multiplexer control pins as outputs
+  pinMode(s0, OUTPUT);
+  pinMode(s1, OUTPUT);
+  pinMode(s2, OUTPUT);
+  pinMode(s3, OUTPUT);
+
+  // Initialize Serial communication for debugging
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Control the servo motor
+  int servoPosition = analogReadMux(servoChannel);  // Read the servo position from the multiplexer
+  servoPosition = map(servoPosition, 0, 1023, 0, 180);  // Map the value to servo angle
+  servo1.write(servoPosition);  // Move the servo to the specified position
+
+  // Print the servo position for debugging
+  Serial.print("Servo Position: ");
+  Serial.println(servoPosition);
+
+  // Delay for readability and servo movement
+  delay(150);
+}
+
+int analogReadMux(int channel) {
+  // Select the desired multiplexer channel using control pins
+  digitalWrite(s0, bitRead(channel, 0));
+  digitalWrite(s1, bitRead(channel, 1));
+  digitalWrite(s2, bitRead(channel, 2));
+  digitalWrite(s3, bitRead(channel, 3));
+
+  // Read and return the analog value from the selected multiplexer channel
+  return analogRead(multiplexerSignalPin);
+}
