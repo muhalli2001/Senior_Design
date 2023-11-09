@@ -18,10 +18,10 @@ const int s3Pin = 5;
 // Define the signal pin for the multiplexer
 const int SIG_PIN = A5; // Connect this to the SIG pin of the multiplexer
 const int estopChannel = 6;
-const int keyChannel = 1;
-const int enableChannel = 2;
-const int resetChannel = 3;
-const int dispatchChannel = 4;
+const int keyChannel = 4;
+const int enableChannel = 3;
+const int resetChannel = 8;
+const int dispatchChannel = 7;
 const int stationChannel = 5;
 const int powerLED = 7;
 
