@@ -1,0 +1,22 @@
+#include <FastLED.h>
+
+// Define the data pin for the LED strip
+#define LED_PIN 10
+
+// Define the number of LEDs in the strip
+#define NUM_LEDS 438
+
+CRGB leds[NUM_LEDS];
+
+void setup() {
+  // Initialize FastLED library for controlling the LED strip
+  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+}
+
+void loop() {
+  // Fill LEDs 7 to 49 with a solid blue color
+  for (int i = 411; i <= 427; i++) {
+    leds[i] = CRGB::Blue;
+  }
+  FastLED.show();
+}
