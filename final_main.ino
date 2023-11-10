@@ -1,9 +1,9 @@
 #include <FastLED.h>
 
-#define LED_PIN 6
-#define NUM_LEDS 140
+#define LED_PIN 10
+#define NUM_LEDS 438
 
-#define VEHICLE_SIZE 4
+#define VEHICLE_SIZE 6
 
 const int s0 = 8;
 const int s1 = 9;
@@ -16,7 +16,7 @@ const int s2Pin = 4;
 const int s3Pin = 5;
 
 // Define the signal pin for the multiplexer
-const int SIG_PIN = A5; // Connect this to the SIG pin of the multiplexer
+const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
 const int estopChannel = 6;
 const int keyChannel = 4;
 const int enableChannel = 3;
@@ -58,8 +58,8 @@ bool zone7endSensor = false;
 const int SIG_PIN_2 = A0;
 
 CRGB leds[NUM_LEDS];
-CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::White}; 
-CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
+CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::Blue CRGB::Blue, CRGB::White}; 
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::Red CRGB::Red, CRGB::White};
 
 int pattern1Position = 0;
 
