@@ -16,14 +16,14 @@ const int s1Pin = 7;
 const int s2Pin = 8;
 const int s3Pin = 9;
 
-const servoMotor1Channel = 2;
-const servoMotor2Channel = 9;
-const servoMotor3Channel = 10;
-const servoMotor4Channel = 11;
-const servoMotor5Channel = 12;
-const servoMotor6Channel = 13;
-const servoMotor7Channel = 14;
-const servoMotor8Channel = 15;
+const int servoMotor1Channel = 2;
+const int servoMotor2Channel = 9;
+const int servoMotor3Channel = 10;
+const int servoMotor4Channel = 11;
+const int servoMotor5Channel = 12;
+const int servoMotor6Channel = 13;
+const int servoMotor7Channel = 14;
+const int servoMotor8Channel = 15;
 
 Servo servoMotor1;
 Servo servoMotor2;
