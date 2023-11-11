@@ -44,20 +44,20 @@ const int dispatchChannel = 7;
 const int stationChannel = 5;
 const int powerLED = 11;
 
-const int zone1beg = 14;
-const int zone1end = 1;
-const int zone2beg = 2;
-const int zone2end = 3;
-const int zone3beg = 4;
-const int zone3end = 5;
-const int zone4beg = 6;
-const int zone4end = 7;
-const int zone5beg = 8;
-const int zone5end = 9;
-const int zone6beg = 10;
-const int zone6end = 11;
-const int zone7beg = 12;
-const int zone7end = 13;
+const int zone1beg = 3;
+const int zone1end = 4;
+const int zone2beg = 5;
+const int zone2end = 6;
+const int zone3beg = 7;
+const int zone3end = 8;
+const int zone4beg = 9;
+const int zone4end = 10;
+const int zone5beg = 11;
+const int zone5end = 12;
+const int zone6beg = 13;
+const int zone6end = 14;
+const int zone7beg = 15;
+const int zone7end = 2;
 
 bool zone1beginSensor = false;
 bool zone1endSensor = false;
@@ -247,32 +247,32 @@ void setup() {
   pinMode(SIG_PIN, INPUT_PULLUP);
 
   zone1.isOccupied=false;
-  zone1.zoneBegin=0;
-  zone1.zoneEnd=20;
+  zone1.zoneBegin=6;
+  zone1.zoneEnd=52;
 
   zone2.isOccupied=false;
-  zone2.zoneBegin=21;
-  zone2.zoneEnd=40;
+  zone2.zoneBegin=55;
+  zone2.zoneEnd=146;
 
   zone3.isOccupied=false;
-  zone3.zoneBegin=41;
-  zone3.zoneEnd=60;
+  zone3.zoneBegin=149;
+  zone3.zoneEnd=170;
   
   zone4.isOccupied=false;
-  zone4.zoneBegin=61;
-  zone4.zoneEnd=80;
+  zone4.zoneBegin=173;
+  zone4.zoneEnd=284;
 
   zone5.isOccupied=false;
-  zone5.zoneBegin=81;
-  zone5.zoneEnd=100;
+  zone5.zoneBegin=287;
+  zone5.zoneEnd=318;
 
   zone6.isOccupied=false;
-  zone6.zoneBegin=101;
-  zone6.zoneEnd=122;
+  zone6.zoneBegin=321;
+  zone6.zoneEnd=408;
 
   zone_station.isOccupied=false;
-  zone_station.zoneBegin=123;
-  zone_station.zoneEnd=140;
+  zone_station.zoneBegin=411;
+  zone_station.zoneEnd=426;
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
@@ -568,7 +568,6 @@ void loop() {
     if(buttonState == HIGH)
     {
       if(channel == keyChannel){
-        //Serial.println("Key switch was turned to on");
         turnOnPowerLED();
         powerState = 1;
       }
@@ -576,35 +575,29 @@ void loop() {
       if(powerState == 1){
 
         if(channel == estopChannel){
-          Serial.println("Estop was pressed");
           estopCleared = false;
           stopAllVehicles();
     
         }
         
         if(channel == enableChannel){
-          Serial.println("Enable button was pressed");
           enableState = 1;
         }
 
         if(channel == dispatchChannel && enableState == 1 && estopCleared){
-          Serial.println("Dispatch button was pressed while enable was held");
           moveAllVehicles();
         }
 
         if(channel == dispatchChannel && enableState == 1 && stationStopCleared){
           MoveVehicle(zone_station.zoneBegin,zone_station.zoneEnd);
-          //moveAllVehicles();
         }
         
         if(channel == resetChannel && enableState == 1){
-          Serial.println("Reset button was pressed");
           estopCleared = true;
           stationStopCleared = true;
         }
 
         if(channel == stationChannel){
-          Serial.println("Station stop was pressed");
           StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
           stationStopCleared = false;
         }
