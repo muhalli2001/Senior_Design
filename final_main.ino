@@ -216,6 +216,16 @@ void turnOnPowerLED(){
   digitalWrite(powerLED,HIGH);
 }
 
+void activateBrakes(int channel,Servo brake)
+{
+    selectChannel(channel);
+    brake.write(90);
+}
+void releaseBrakes(int channel,Servo brake)
+{
+    selectChannel(channel);
+    brake.write(0);
+}
 
 // Function to select a channel on the multiplexer
 void selectChannel(int channel) {
@@ -411,9 +421,13 @@ void loop() {
         zone2.isOccupied=true;
         if(zone3.isOccupied){
           StopVehicle(zone2.zoneBegin, zone2.zoneEnd);
+          activateBrakes(servoMotor1Channel,servoMotor1); 
+          activateBrakes(servoMotor2Channel,servoMotor2); 
         }else
         {
           MoveVehicle(zone2.zoneBegin, zone2.zoneEnd);
+          releaseBrakes(servoMotor1Channel,servoMotor1); 
+          releaseBrakes(servoMotor2Channel,servoMotor2); 
         }
       }
 
@@ -445,9 +459,13 @@ void loop() {
         zone4.isOccupied=true;
         if(zone5.isOccupied){
           StopVehicle(zone4.zoneBegin, zone4.zoneEnd);
+          activateBrakes(servoMotor3Channel,servoMotor3); 
+          activateBrakes(servoMotor4Channel,servoMotor4); 
         }else
         {
           MoveVehicle(zone4.zoneBegin, zone4.zoneEnd);
+          releaseBrakes(servoMotor3Channel,servoMotor3); 
+          releaseBrakes(servoMotor4Channel,servoMotor4);
         }
       }
 
@@ -479,9 +497,17 @@ void loop() {
         zone6.isOccupied=true;
         if(zone_station.isOccupied){
           StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
+          activateBrakes(servoMotor5Channel,servoMotor3); 
+          activateBrakes(servoMotor6Channel,servoMotor4);
+          activateBrakes(servoMotor7Channel,servoMotor3); 
+          activateBrakes(servoMotor8Channel,servoMotor4); 
         }else
         {
           MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
+          releaseBrakes(servoMotor5Channel,servoMotor3); 
+          releaseBrakes(servoMotor6Channel,servoMotor4);
+          releaseBrakes(servoMotor7Channel,servoMotor3); 
+          releaseBrakes(servoMotor8Channel,servoMotor4); 
         }
       }
 
