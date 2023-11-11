@@ -83,13 +83,13 @@ CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::Ye
 CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::White};
 CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::White};
 
-int pattern1Position = 0;
+int pattern1Position = 6;
 
 // The second pattern begins at the end of the strip
-int pattern2Position = 20;
-int pattern3Position = 40;
-int pattern4Position = 60;
-int pattern5Position = 80;
+int pattern2Position = 420;
+int pattern3Position = 413;
+int pattern4Position = 406;
+int pattern5Position = 399;
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 200; 
 
