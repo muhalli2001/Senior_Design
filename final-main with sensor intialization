@@ -402,7 +402,7 @@ void loop() {
     
     int sensorValue = analogRead(SIG_PIN_2);
 
-    if(sensorValue>sensorFlagValue)
+    if(sensorValue>sensorNormalValue)
     {
        Serial.print("Channel ");
        Serial.print(channel);
