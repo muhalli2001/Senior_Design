@@ -1,19 +1,38 @@
 #include <FastLED.h>
+#include <Servo.h>
 
 #define LED_PIN 10
 #define NUM_LEDS 438
 
 #define VEHICLE_SIZE 6
 
-const int s0 = 8;
-const int s1 = 9;
-const int s2 = 10;
-const int s3 = 11;
+const int s0 = 2;
+const int s1 = 3;
+const int s2 = 4;
+const int s3 = 5;
 
-const int s0Pin = 2;
-const int s1Pin = 3;
-const int s2Pin = 4;
-const int s3Pin = 5;
+const int s0Pin = 6;
+const int s1Pin = 7;
+const int s2Pin = 8;
+const int s3Pin = 9;
+
+const servoMotor1Channel = 2;
+const servoMotor2Channel = 9;
+const servoMotor3Channel = 10;
+const servoMotor4Channel = 11;
+const servoMotor5Channel = 12;
+const servoMotor6Channel = 13;
+const servoMotor7Channel = 14;
+const servoMotor8Channel = 15;
+
+Servo servoMotor1;
+Servo servoMotor2;
+Servo servoMotor3;
+Servo servoMotor4;
+Servo servoMotor5;
+Servo servoMotor6;
+Servo servoMotor7;
+Servo servoMotor8;
 
 // Define the signal pin for the multiplexer
 const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
@@ -23,7 +42,7 @@ const int enableChannel = 3;
 const int resetChannel = 8;
 const int dispatchChannel = 7;
 const int stationChannel = 5;
-const int powerLED = 7;
+const int powerLED = 11;
 
 const int zone1beg = 14;
 const int zone1end = 1;
@@ -58,13 +77,19 @@ bool zone7endSensor = false;
 const int SIG_PIN_2 = A0;
 
 CRGB leds[NUM_LEDS];
-CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::Blue CRGB::Blue, CRGB::White}; 
-CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::Red CRGB::Red, CRGB::White};
+CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::Red, CRGB::Red, CRGB::White};
+CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::Yellow, CRGB::Yellow, CRGB::White};
+CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::White};
+CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::White};
 
 int pattern1Position = 0;
 
 // The second pattern begins at the end of the strip
 int pattern2Position = 20;
+int pattern3Position = 40;
+int pattern4Position = 60;
+int pattern5Position = 80;
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 200; 
 
@@ -74,6 +99,9 @@ bool pattern1_isStopped=false;
 bool estopCleared = true;
 bool stationStopCleared = true;
 bool pattern2_isStopped = false;
+bool pattern3_isStopped = false;
+bool pattern4_isStopped = false;
+bool pattern5_isStopped = false;
 
 struct Zone_Info {
     bool isOccupied;
@@ -98,6 +126,14 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     else if(pattern2Position>zoneBegin && pattern2Position < zoneEnd)
     {
       return 2;
+    }else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd){
+    return 3;
+    }
+    else if(pattern4Position>zoneBegin && pattern4Position < zoneEnd){
+        return 4;
+    }else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
+    {
+        return 5;
     }
     else
     {
@@ -122,6 +158,18 @@ void StopVehicle(int zoneBegin, int zoneEnd)
   {
     pattern2_isStopped=true;
   }
+    if(vehicle==3)
+  {
+    pattern3_isStopped=true;
+  }
+  if(vehicle==4)
+  {
+    pattern4_isStopped=true;
+  }
+    if(vehicle==5)
+  {
+    pattern5_isStopped=true;
+  }
 }
 
 void MoveVehicle(int zoneBegin, int zoneEnd)
@@ -139,6 +187,19 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   {
     pattern2_isStopped=false;
   }
+      if(vehicle==3)
+  {
+    pattern3_isStopped=false;
+  }
+  if(vehicle==4)
+  {
+    pattern4_isStopped=false;
+  }
+ if(vehicle==5)
+  {
+    pattern5_isStopped=false;
+  }
+  
 }
 
 void stopAllVehicles()
@@ -216,6 +277,15 @@ void setup() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
 
+    servoMotor1.attach(servoMotor1Channel);
+    servoMotor2.attach(servoMotor2Channel);
+    servoMotor3.attach(servoMotor3Channel);
+    servoMotor4.attach(servoMotor4Channel);
+    servoMotor5.attach(servoMotor5Channel);
+    servoMotor6.attach(servoMotor6Channel);
+    servoMotor7.attach(servoMotor7Channel);
+    servoMotor8.attach(servoMotor8Channel);
+    
   // Initialize serial communication for debugging
   Serial.begin(9600);
 
@@ -239,7 +309,15 @@ void loop() {
     for (int i = 0; i < VEHICLE_SIZE; i++) {
       leds[(pattern2Position + i) % NUM_LEDS] = pattern2[i];
       }
-
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+      leds[(pattern3Position + i) % NUM_LEDS] = pattern3[i];
+      }
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+      leds[(pattern4Position + i) % NUM_LEDS] = pattern4[i];
+      }
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+      leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
+      }
     FastLED.show();
 
     if(isStopped==false && pattern1_isStopped==false && estopCleared)
@@ -250,6 +328,7 @@ void loop() {
     {
       pattern1Position=pattern1Position;
     }
+      
     if(isStopped==false && pattern2_isStopped==false && estopCleared)
     {
       pattern2Position = (pattern2Position + 1) % NUM_LEDS;
@@ -257,6 +336,33 @@ void loop() {
     else
     {
       pattern2Position=pattern2Position;
+    }
+
+   if(isStopped==false && pattern3_isStopped==false && estopCleared)
+    {
+      pattern3Position = (pattern3Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern3Position=pattern3Position;
+    }
+
+       if(isStopped==false && pattern4_isStopped==false && estopCleared)
+    {
+      pattern4Position = (pattern4Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern4Position=pattern4Position;
+    }
+
+       if(isStopped==false && pattern5_isStopped==false && estopCleared)
+    {
+      pattern5Position = (pattern5Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern5Position=pattern5Position;
     }
 
   lastUpdateTime = currentTime;
@@ -470,7 +576,7 @@ void loop() {
       if(powerState == 1){
 
         if(channel == estopChannel){
-          Serial.println("Estop was jpressed");
+          Serial.println("Estop was pressed");
           estopCleared = false;
           stopAllVehicles();
     
