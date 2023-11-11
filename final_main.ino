@@ -126,14 +126,16 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     else if(pattern2Position>zoneBegin && pattern2Position < zoneEnd)
     {
       return 2;
-    }else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd){
-    return 3;
+    }else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd)
+    {
+      return 3;
     }
-    else if(pattern4Position>zoneBegin && pattern4Position < zoneEnd){
-        return 4;
+    else if(pattern4Position>zoneBegin && pattern4Position < zoneEnd)
+    {
+      return 4;
     }else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
     {
-        return 5;
+      return 5;
     }
     else
     {
@@ -187,7 +189,7 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   {
     pattern2_isStopped=false;
   }
-      if(vehicle==3)
+  if(vehicle==3)
   {
     pattern3_isStopped=false;
   }
@@ -195,7 +197,7 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   {
     pattern4_isStopped=false;
   }
- if(vehicle==5)
+  if(vehicle==5)
   {
     pattern5_isStopped=false;
   }
@@ -218,12 +220,18 @@ void turnOnPowerLED(){
 
 void activateBrakes(int channel,Servo brake)
 {
-    selectChannel(channel);
+    digitalWrite(s0, bitRead(channel, 0));
+    digitalWrite(s1, bitRead(channel, 1));
+    digitalWrite(s2, bitRead(channel, 2));
+    digitalWrite(s3, bitRead(channel, 3));
     brake.write(90);
 }
 void releaseBrakes(int channel,Servo brake)
 {
-    selectChannel(channel);
+    digitalWrite(s0, bitRead(channel, 0));
+    digitalWrite(s1, bitRead(channel, 1));
+    digitalWrite(s2, bitRead(channel, 2));
+    digitalWrite(s3, bitRead(channel, 3));
     brake.write(0);
 }
 
