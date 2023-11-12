@@ -2,7 +2,7 @@
 #include <Servo.h>
 
 #define LED_PIN 10
-#define NUM_LEDS 427
+#define NUM_LEDS 426
 
 #define VEHICLE_SIZE 4
 
@@ -85,7 +85,7 @@ CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::Wh
 
 int pattern1Position = 5;
 int pattern2Position = 408;
-int pattern3Position = 318;
+int pattern3Position = 316;
 int pattern4Position = 283;
 int pattern5Position = 169;
 
