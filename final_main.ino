@@ -2,9 +2,9 @@
 #include <Servo.h>
 
 #define LED_PIN 10
-#define NUM_LEDS 438
+#define NUM_LEDS 426
 
-#define VEHICLE_SIZE 6
+#define VEHICLE_SIZE 4
 
 const int s0 = 2;
 const int s1 = 3;
@@ -15,7 +15,8 @@ const int s0Pin = 6;
 const int s1Pin = 7;
 const int s2Pin = 8;
 const int s3Pin = 9;
-
+int sensorFlagValue;
+int sensorNormalValue;
 const int servoMotor1Channel = 2;
 const int servoMotor2Channel = 9;
 const int servoMotor3Channel = 10;
@@ -33,7 +34,6 @@ Servo servoMotor5;
 Servo servoMotor6;
 Servo servoMotor7;
 Servo servoMotor8;
-
 // Define the signal pin for the multiplexer
 const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
 const int estopChannel = 6;
@@ -77,19 +77,18 @@ bool zone7endSensor = false;
 const int SIG_PIN_2 = A0;
 
 CRGB leds[NUM_LEDS];
-CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue, CRGB::Blue, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
-CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::Red, CRGB::Red, CRGB::White};
-CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::Yellow, CRGB::Yellow, CRGB::White};
-CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::Green, CRGB::White};
-CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::Purple, CRGB::White};
+CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
+CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Green ,CRGB::Green, CRGB::White}; 
+CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::White};
+CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::White};
 
-int pattern1Position = 6;
+int pattern1Position = 5;
+int pattern2Position = 408;
+int pattern3Position = 317;
+int pattern4Position = 283;
+int pattern5Position = 169;
 
-// The second pattern begins at the end of the strip
-int pattern2Position = 420;
-int pattern3Position = 413;
-int pattern4Position = 406;
-int pattern5Position = 399;
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 200; 
 
@@ -117,6 +116,10 @@ Zone_Info zone5;
 Zone_Info zone6;
 Zone_Info zone_station;
 
+int channelFlag[16];
+int channelNotFlag[16];
+
+
 int SearchVehicle(int zoneBegin, int zoneEnd)
 {
     if(pattern1Position>zoneBegin && pattern1Position<zoneEnd)
@@ -126,16 +129,10 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     else if(pattern2Position>zoneBegin && pattern2Position < zoneEnd)
     {
       return 2;
-    }else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd)
+    }
+    else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd)
     {
       return 3;
-    }
-    else if(pattern4Position>zoneBegin && pattern4Position < zoneEnd)
-    {
-      return 4;
-    }else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
-    {
-      return 5;
     }
     else
     {
@@ -160,18 +157,11 @@ void StopVehicle(int zoneBegin, int zoneEnd)
   {
     pattern2_isStopped=true;
   }
-    if(vehicle==3)
+  if(vehicle==3)
   {
     pattern3_isStopped=true;
   }
-  if(vehicle==4)
-  {
-    pattern4_isStopped=true;
-  }
-    if(vehicle==5)
-  {
-    pattern5_isStopped=true;
-  }
+  
 }
 
 void MoveVehicle(int zoneBegin, int zoneEnd)
@@ -193,15 +183,6 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   {
     pattern3_isStopped=false;
   }
-  if(vehicle==4)
-  {
-    pattern4_isStopped=false;
-  }
-  if(vehicle==5)
-  {
-    pattern5_isStopped=false;
-  }
-  
 }
 
 void stopAllVehicles()
@@ -218,23 +199,23 @@ void turnOnPowerLED(){
   digitalWrite(powerLED,HIGH);
 }
 
-void activateBrakes(int channel,Servo brake)
-{
-    digitalWrite(s0, bitRead(channel, 0));
-    digitalWrite(s1, bitRead(channel, 1));
-    digitalWrite(s2, bitRead(channel, 2));
-    digitalWrite(s3, bitRead(channel, 3));
-    brake.write(90);
-    delay(500);
-}
-void releaseBrakes(int channel,Servo brake)
-{
-    digitalWrite(s0, bitRead(channel, 0));
-    digitalWrite(s1, bitRead(channel, 1));
-    digitalWrite(s2, bitRead(channel, 2));
-    digitalWrite(s3, bitRead(channel, 3));
-    brake.write(0);
-    delay(500);
+void initializeLEDS(){
+  for (int channel = 0; channel < 16; channel++) {
+    selectChannel(channel);
+    channelNotFlag[channel] = analogRead(SIG_PIN_2);
+  }
+
+  fill_solid(leds, NUM_LEDS, CRGB::White);
+  FastLED.show(); 
+  delay(1500); 
+
+  for (int channel = 0; channel < 16; channel++) {
+    selectChannel(channel);
+    channelFlag[channel]= analogRead(SIG_PIN_2);
+  }
+ 
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
 }
 
 // Function to select a channel on the multiplexer
@@ -267,48 +248,39 @@ void setup() {
   pinMode(SIG_PIN, INPUT_PULLUP);
 
   zone1.isOccupied=false;
-  zone1.zoneBegin=6;
-  zone1.zoneEnd=52;
+  zone1.zoneBegin=5;
+  zone1.zoneEnd=53;
 
   zone2.isOccupied=false;
-  zone2.zoneBegin=55;
-  zone2.zoneEnd=146;
+  zone2.zoneBegin=54;
+  zone2.zoneEnd=147;
 
   zone3.isOccupied=false;
-  zone3.zoneBegin=149;
-  zone3.zoneEnd=170;
+  zone3.zoneBegin=148;
+  zone3.zoneEnd=171;
   
   zone4.isOccupied=false;
-  zone4.zoneBegin=173;
-  zone4.zoneEnd=284;
+  zone4.zoneBegin=171;
+  zone4.zoneEnd=285;
 
   zone5.isOccupied=false;
-  zone5.zoneBegin=287;
-  zone5.zoneEnd=318;
+  zone5.zoneBegin=286;
+  zone5.zoneEnd=319;
 
   zone6.isOccupied=false;
-  zone6.zoneBegin=321;
-  zone6.zoneEnd=408;
+  zone6.zoneBegin=320;
+  zone6.zoneEnd=409;
 
   zone_station.isOccupied=false;
-  zone_station.zoneBegin=411;
-  zone_station.zoneEnd=426;
+  zone_station.zoneBegin=410;
+  zone_station.zoneEnd=427;
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
-
-    servoMotor1.attach(servoMotor1Channel);
-    servoMotor2.attach(servoMotor2Channel);
-    servoMotor3.attach(servoMotor3Channel);
-    servoMotor4.attach(servoMotor4Channel);
-    servoMotor5.attach(servoMotor5Channel);
-    servoMotor6.attach(servoMotor6Channel);
-    servoMotor7.attach(servoMotor7Channel);
-    servoMotor8.attach(servoMotor8Channel);
     
   // Initialize serial communication for debugging
   Serial.begin(9600);
-
+  initializeLEDS();
   FastLED.clear();
 
 }
@@ -328,16 +300,10 @@ void loop() {
 
     for (int i = 0; i < VEHICLE_SIZE; i++) {
       leds[(pattern2Position + i) % NUM_LEDS] = pattern2[i];
-      }
+    }
     for (int i = 0; i < VEHICLE_SIZE; i++) {
-      leds[(pattern3Position + i) % NUM_LEDS] = pattern3[i];
-      }
-    for (int i = 0; i < VEHICLE_SIZE; i++) {
-      leds[(pattern4Position + i) % NUM_LEDS] = pattern4[i];
-      }
-    for (int i = 0; i < VEHICLE_SIZE; i++) {
-      leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
-      }
+    leds[(pattern3Position + i) % NUM_LEDS] = pattern3[i];
+    }
     FastLED.show();
 
     if(isStopped==false && pattern1_isStopped==false && estopCleared)
@@ -358,7 +324,7 @@ void loop() {
       pattern2Position=pattern2Position;
     }
 
-   if(isStopped==false && pattern3_isStopped==false && estopCleared)
+    if(isStopped==false && pattern3_isStopped==false && estopCleared)
     {
       pattern3Position = (pattern3Position + 1) % NUM_LEDS;
     }
@@ -366,25 +332,7 @@ void loop() {
     {
       pattern3Position=pattern3Position;
     }
-
-       if(isStopped==false && pattern4_isStopped==false && estopCleared)
-    {
-      pattern4Position = (pattern4Position + 1) % NUM_LEDS;
-    }
-    else
-    {
-      pattern4Position=pattern4Position;
-    }
-
-       if(isStopped==false && pattern5_isStopped==false && estopCleared)
-    {
-      pattern5Position = (pattern5Position + 1) % NUM_LEDS;
-    }
-    else
-    {
-      pattern5Position=pattern5Position;
-    }
-
+   
   lastUpdateTime = currentTime;
 
   for (int channel = 0; channel < 16; channel++) {
@@ -393,16 +341,16 @@ void loop() {
 
     // Read the button state from the current channel
     int buttonState = digitalRead(SIG_PIN);
-    
     int sensorValue = analogRead(SIG_PIN_2);
-
-    if(sensorValue>900)
+  
+    if(sensorValue>channelNotFlag[channel] && sensorValue>=channelFlag[channel])
     {
-       Serial.print("Channel ");
-       Serial.print(channel);
-       Serial.print(": ");
-       Serial.println(sensorValue);
-
+      Serial.print("Channel ");
+      Serial.print(channel);
+      Serial.print(": ");
+      Serial.print(sensorValue);
+      Serial.print(" normal value is ");
+      Serial.println(channelNotFlag[channel]);
       if(channel == zone1end)
       {
         zone1.isOccupied = false;
@@ -431,13 +379,11 @@ void loop() {
         zone2.isOccupied=true;
         if(zone3.isOccupied){
           StopVehicle(zone2.zoneBegin, zone2.zoneEnd);
-          activateBrakes(servoMotor1Channel,servoMotor1); 
-          activateBrakes(servoMotor2Channel,servoMotor2); 
+         
         }else
         {
           MoveVehicle(zone2.zoneBegin, zone2.zoneEnd);
-          releaseBrakes(servoMotor1Channel,servoMotor1); 
-          releaseBrakes(servoMotor2Channel,servoMotor2); 
+      
         }
       }
 
@@ -469,13 +415,9 @@ void loop() {
         zone4.isOccupied=true;
         if(zone5.isOccupied){
           StopVehicle(zone4.zoneBegin, zone4.zoneEnd);
-          activateBrakes(servoMotor3Channel,servoMotor3); 
-          activateBrakes(servoMotor4Channel,servoMotor4); 
         }else
         {
           MoveVehicle(zone4.zoneBegin, zone4.zoneEnd);
-          releaseBrakes(servoMotor3Channel,servoMotor3); 
-          releaseBrakes(servoMotor4Channel,servoMotor4);
         }
       }
 
@@ -507,17 +449,9 @@ void loop() {
         zone6.isOccupied=true;
         if(zone_station.isOccupied){
           StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
-          activateBrakes(servoMotor5Channel,servoMotor3); 
-          activateBrakes(servoMotor6Channel,servoMotor4);
-          activateBrakes(servoMotor7Channel,servoMotor3); 
-          activateBrakes(servoMotor8Channel,servoMotor4); 
         }else
         {
           MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
-          releaseBrakes(servoMotor5Channel,servoMotor3); 
-          releaseBrakes(servoMotor6Channel,servoMotor4);
-          releaseBrakes(servoMotor7Channel,servoMotor3); 
-          releaseBrakes(servoMotor8Channel,servoMotor4); 
         }
       }
 
@@ -537,7 +471,9 @@ void loop() {
         {
           MoveVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
         }
-      }     
+      }
+
+             
 
     }
     else
@@ -621,6 +557,7 @@ void loop() {
         }
 
         if(channel == dispatchChannel && enableState == 1 && estopCleared){
+          Serial.println("dispatch pressed");
           moveAllVehicles();
         }
 
@@ -629,6 +566,7 @@ void loop() {
         }
         
         if(channel == resetChannel && enableState == 1){
+      
           estopCleared = true;
           stationStopCleared = true;
         }
@@ -649,5 +587,5 @@ void loop() {
     stopAllVehicles();
   }
   }
-  
+
 }
