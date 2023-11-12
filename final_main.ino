@@ -225,6 +225,7 @@ void activateBrakes(int channel,Servo brake)
     digitalWrite(s2, bitRead(channel, 2));
     digitalWrite(s3, bitRead(channel, 3));
     brake.write(90);
+    delay(500);
 }
 void releaseBrakes(int channel,Servo brake)
 {
@@ -233,6 +234,7 @@ void releaseBrakes(int channel,Servo brake)
     digitalWrite(s2, bitRead(channel, 2));
     digitalWrite(s3, bitRead(channel, 3));
     brake.write(0);
+    delay(500);
 }
 
 // Function to select a channel on the multiplexer
