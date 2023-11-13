@@ -211,10 +211,8 @@ void initializeLEDS(){
   FastLED.show();
 }
 
-int servoPosition[8];
-void moveServo(int position,Servo servo, int servoPosition){
+void moveServo(int position,Servo servo){
     servo.write(position);
-    servoPosition = position;
     delay(15);
 }
 
@@ -588,10 +586,10 @@ void loop() {
 
     }
 
-    if(zone3.isOccupied){
-        moveServo(90, servos[0],servoPosition[0]);
+    if(channel == servoMotor1Channel && zone3.isOccupied){
+        moveServo(90, servos[0]);
     }else{
-        moveServo(0, servos[0], servoPosition[0]);
+        moveServo(0, servos[0]);
     }
         
     delay(10);
