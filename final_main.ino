@@ -25,15 +25,8 @@ const int servoMotor5Channel = 12;
 const int servoMotor6Channel = 13;
 const int servoMotor7Channel = 14;
 const int servoMotor8Channel = 15;
-
-Servo servoMotor1;
-Servo servoMotor2;
-Servo servoMotor3;
-Servo servoMotor4;
-Servo servoMotor5;
-Servo servoMotor6;
-Servo servoMotor7;
-Servo servoMotor8;
+const int numServos = 8;
+Servo servos[numServos];
 // Define the signal pin for the multiplexer
 const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
 const int estopChannel = 6;
@@ -277,7 +270,16 @@ void setup() {
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.setBrightness(100);
-    
+
+    servos[0].attach(servoMotor1Channel);
+    servos[1].attach(servoMotor2Channel);
+    servos[2].attach(servoMotor3Channel);
+    servos[3].attach(servoMotor4Channel);
+    servos[4].attach(servoMotor5Channel);
+    servos[5].attach(servoMotor6Channel);
+    servos[6].attach(servoMotor7Channel);
+    servos[7].attach(servoMotor8Channel);
+
   // Initialize serial communication for debugging
   Serial.begin(9600);
   initializeLEDS();
@@ -342,7 +344,7 @@ void loop() {
     // Read the button state from the current channel
     int buttonState = digitalRead(SIG_PIN);
     int sensorValue = analogRead(SIG_PIN_2);
-  
+    
     if(sensorValue>channelNotFlag[channel] && sensorValue>=channelFlag[channel])
     {
       Serial.print("Channel ");
@@ -473,9 +475,63 @@ void loop() {
         }
       }
 
-             
-
+    if(channel == servoMotor1Channel && zone2.isOccupied)
+    {
+       if(zone3.isOccupied){
+        servos[0].write(90);
+        delay(1000);
+       }
     }
+    if(channel == servoMotor2Channel)
+    {
+       if(zone3.isOccupied){
+        servos[1].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor3Channel)
+    {
+       if(zone5.isOccupied){
+        servos[2].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor4Channel)
+    {
+       if(zone5.isOccupied){
+        servos[3].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor5Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[4].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor6Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[5].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor7Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[6].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor8Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[7].write(90);
+        delay(1000);
+       }
+    }
+
     else
     {
       if(channel == zone1beg)
