@@ -475,63 +475,6 @@ void loop() {
         }
       }
 
-    if(channel == servoMotor1Channel && zone2.isOccupied)
-    {
-       if(zone3.isOccupied){
-        servos[0].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor2Channel)
-    {
-       if(zone3.isOccupied){
-        servos[1].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor3Channel)
-    {
-       if(zone5.isOccupied){
-        servos[2].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor4Channel)
-    {
-       if(zone5.isOccupied){
-        servos[3].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor5Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[4].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor6Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[5].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor7Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[6].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor8Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[7].write(90);
-        delay(1000);
-       }
-    }
-
     else
     {
       if(channel == zone1beg)
@@ -634,7 +577,64 @@ void loop() {
       }
 
     }
-
+    
+    if(channel == servoMotor1Channel && zone2.isOccupied)
+    {
+       if(zone3.isOccupied){
+        servos[0].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor2Channel)
+    {
+       if(zone3.isOccupied){
+        servos[1].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor3Channel)
+    {
+       if(zone5.isOccupied){
+        servos[2].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor4Channel)
+    {
+       if(zone5.isOccupied){
+        servos[3].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor5Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[4].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor6Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[5].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor7Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[6].write(90);
+        delay(1000);
+       }
+    }
+    if(channel == servoMotor8Channel)
+    {
+       if(zone_station.isOccupied){
+        servos[7].write(90);
+        delay(1000);
+       }
+    }
+        
     delay(10);
   }
 
