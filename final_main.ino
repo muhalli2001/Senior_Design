@@ -211,6 +211,13 @@ void initializeLEDS(){
   FastLED.show();
 }
 
+int servoPosition[8];
+void moveServo(int position,Servo servo, int servoPosition){
+    servo.write(position);
+    servoPosition = position;
+    delay(15);
+}
+
 // Function to select a channel on the multiplexer
 void selectChannel(int channel) {
   // Calculate the binary representation of the channel
@@ -283,6 +290,9 @@ void setup() {
   // Initialize serial communication for debugging
   Serial.begin(9600);
   initializeLEDS();
+    for(int i=0; i<8;i++){
+    servoPosition[i]=0;
+    }
   FastLED.clear();
 
 }
@@ -577,62 +587,14 @@ void loop() {
       }
 
     }
-    
-    if(channel == servoMotor1Channel && zone2.isOccupied)
-    {
-       if(zone3.isOccupied){
-        servos[0].write(90);
+
+    if(zone3.isOccupied){
+        moveServo(90, servoMotor1,servoPosition[0]);
         delay(1000);
-       }
-    }
-    if(channel == servoMotor2Channel)
-    {
-       if(zone3.isOccupied){
-        servos[1].write(90);
+        moveServo(0, servoMotor1, servoPosition[0]);
         delay(1000);
-       }
-    }
-    if(channel == servoMotor3Channel)
-    {
-       if(zone5.isOccupied){
-        servos[2].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor4Channel)
-    {
-       if(zone5.isOccupied){
-        servos[3].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor5Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[4].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor6Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[5].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor7Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[6].write(90);
-        delay(1000);
-       }
-    }
-    if(channel == servoMotor8Channel)
-    {
-       if(zone_station.isOccupied){
-        servos[7].write(90);
-        delay(1000);
-       }
+    }else{
+        moveServo(servoPosition[0], servoMotor1, servoPosition[0]);
     }
         
     delay(10);
