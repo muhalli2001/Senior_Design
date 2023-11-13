@@ -589,9 +589,9 @@ void loop() {
     }
 
     if(zone3.isOccupied){
-        moveServo(90, servoMotor1,servoPosition[0]);
+        moveServo(90, servos[0],servoPosition[0]);
     }else{
-        moveServo(0, servoMotor1, servoPosition[0]);
+        moveServo(0, servos[0], servoPosition[0]);
     }
         
     delay(10);
