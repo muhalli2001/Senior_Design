@@ -1,7 +1,7 @@
-const int s0 = 8;
-const int s1 = 9;
-const int s2 = 10;
-const int s3 = 11;
+const int s0 = 2;
+const int s1 = 3;
+const int s2 = 4;
+const int s3 = 5;
 
 // Define the signal pin for the multiplexer
 const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
