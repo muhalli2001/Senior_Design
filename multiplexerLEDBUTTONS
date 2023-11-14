@@ -1,0 +1,208 @@
+#include <FastLED.h>
+
+// Define the data pin for the LED strip connected to Arduino
+#define LED_PIN_ARDUINO 10
+
+// Define the data pins for the LED strips connected to the multiplexer
+ #define LED_PIN_MULTIPLEXER_14 14
+#define LED_PIN_MULTIPLEXER_15 15
+
+// // Define the number of LEDs in each strip
+ #define NUM_LEDS_ARDUINO 438
+ #define NUM_LEDS_MULTIPLEXER 2
+
+
+
+
+
+
+
+const int s0 = 2;
+const int s1 = 3;
+const int s2 = 4;
+const int s3 = 5;
+
+// Define the signal pin for the multiplexer
+const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer
+const int estopChannel = 6;
+const int keyChannel = 4;
+const int enableChannel = 3;
+const int resetChannel = 8;
+const int dispatchChannel = 7;
+const int stationChannel = 5;
+const int powerLED = 11;
+
+CRGB leds_arduino[NUM_LEDS_ARDUINO];
+ CRGB leds_multiplexer_14[NUM_LEDS_MULTIPLEXER];
+ CRGB leds_multiplexer_15[NUM_LEDS_MULTIPLEXER];
+void setup() {
+  // Initialize the multiplexer control pins as OUTPUT
+  pinMode(s0, OUTPUT);
+  pinMode(s1, OUTPUT);
+  pinMode(s2, OUTPUT);
+  pinMode(s3, OUTPUT);
+
+  // Initialize the signal pin as INPUT
+  pinMode(SIG_PIN, INPUT_PULLUP);
+
+
+FastLED.addLeds<WS2812B, LED_PIN_ARDUINO, GRB>(leds_arduino, NUM_LEDS_ARDUINO);
+FastLED.addLeds<WS2812B, LED_PIN_MULTIPLEXER_14, GRB>(leds_multiplexer_14, NUM_LEDS_MULTIPLEXER);
+FastLED.addLeds<WS2812B, LED_PIN_MULTIPLEXER_15, GRB>(leds_multiplexer_15, NUM_LEDS_MULTIPLEXER);
+
+  // Initialize serial communication for debugging
+  Serial.begin(9600);
+}
+
+void loop() {
+  //Serial.println("eloo");
+  // Loop through all 16 channels
+  int powerState = 1;
+  int enableState = 0;
+
+
+FastLED.clear();
+
+
+for (int i = 0; i < NUM_LEDS_ARDUINO; i++) 
+         {
+            
+             leds_arduino[i] = CRGB::Blue;
+             
+             
+         }
+         delay(100);
+         FastLED.show();
+
+
+
+
+
+
+  for (int channel = 0; channel < 16; channel++) {
+    // Select the current channel on the multiplexer
+    selectChannel(channel);
+
+
+
+
+
+  if (channel == 14 || channel==15 )
+  {
+    
+    
+
+      if(channel ==15)
+      {
+        FastLED.addLeds<WS2812B, SIG_PIN, GRB>(leds_multiplexer_15, NUM_LEDS_MULTIPLEXER);
+FastLED.clear();
+
+
+
+
+        
+         for (int i = 0; i < NUM_LEDS_MULTIPLEXER; i++) 
+         {
+             leds_multiplexer_15[i] = CRGB::Blue;
+         }
+
+
+
+   FastLED.show();
+   //delay(100);
+
+
+      }
+if (channel == 14)
+{
+FastLED.addLeds<WS2812B, SIG_PIN, GRB>(leds_multiplexer_14, NUM_LEDS_MULTIPLEXER);
+FastLED.clear();
+
+for (int i = 0; i < NUM_LEDS_MULTIPLEXER; i++) 
+         {
+            
+             leds_multiplexer_14[i] = CRGB::Blue;
+             
+             
+         }
+         FastLED.show();
+         Serial.println("14givjvjvjvjvjvjvkkkkkkkk");
+}
+
+  }
+
+
+
+
+    // Serial.println(channel);
+    //selectChannel(channel);
+  //   if (channel == LED_PIN_MULTIPLEXER_14 )
+  //   {
+  //     for (int i = 0; i < NUM_LEDS_MULTIPLEXER; i++) {
+  //   leds_multiplexer_14[i] = CRGB::Blue;
+  // }
+
+  // // Select channel 15 on the multiplexer
+  // FastLED.show();
+
+  //   }
+
+    // Read the button state from the current channel
+    pinMode(SIG_PIN, INPUT_PULLUP);
+    int buttonState = digitalRead(SIG_PIN);
+    Serial.println(buttonState);
+    if(buttonState == HIGH)
+    {
+      if(channel == keyChannel){
+        //Serial.println("Key switch was turned to on");
+        turnOnPowerLED();
+        powerState = 1;
+      }
+      
+      if(powerState == 1){
+
+        if(channel == estopChannel){
+          Serial.println("Estop was pressed");
+        }
+        
+        if(channel == enableChannel){
+          Serial.println("Enable button was pressed");
+          enableState = 1;
+        }
+
+        if(channel == resetChannel){
+          Serial.println("Reset button was pressed");
+        }
+
+        if(channel == dispatchChannel && enableState == 1){
+          Serial.println("Dispatch button was pressed");
+        }
+
+        if(channel == stationChannel){
+          Serial.println("Station stop was pressed");
+        }
+      }
+
+    }
+
+    delay(100);
+  }
+
+  if(powerState == 0){
+    digitalWrite(powerLED, LOW);
+  }
+}
+
+void turnOnPowerLED(){
+  digitalWrite(powerLED,HIGH);
+}
+
+
+// Function to select a channel on the multiplexer
+void selectChannel(int channel) {
+  // Calculate the binary representation of the channel
+  digitalWrite(s0, bitRead(channel, 0));
+  digitalWrite(s1, bitRead(channel, 1));
+  digitalWrite(s2, bitRead(channel, 2));
+  digitalWrite(s3, bitRead(channel, 3));
+}
