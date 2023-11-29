@@ -782,7 +782,7 @@ void loop() {
   // Loop through all 16 channels
   unsigned long currentTime = millis();
   int powerState = 0;
-  int enableState = 1;
+  int enableState = 0;
 
   if (currentTime - lastUpdateTime >= updateInterval) {
     //FastLED.clear();
@@ -1212,7 +1212,7 @@ void loop() {
         }
         
         if(channel == enableChannel){
-          enableState = 1;a
+          enableState = 1;
           Serial.println("Enable PRessed");
         }
 
