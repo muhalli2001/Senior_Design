@@ -172,17 +172,18 @@
 
 #define LED_PIN 10
 #define NUM_LEDS 426
-#define NUM_LEDS_MUX 5 //brakes are 4 leds long
+#define NUM_LEDS_MUX 4 //brakes are 4 leds long
 
 #define VEHICLE_SIZE 4
 
 // pattern/full led strip variables
 CRGB leds[NUM_LEDS];
 CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
-CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::BlanchedAlmond, CRGB::BlanchedAlmond, CRGB::White};
 CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Green ,CRGB::Green, CRGB::White}; 
 CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::White};
 CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::White};
+CRGB pattern6[VEHICLE_SIZE] = {CRGB::White, CRGB::Navy, CRGB::Navy, CRGB::White};
 
 CLEDController *controllers[2]; // one for the main led, one for sig pin. We can change 2 -> NUM_STRIPS
 uint8_t gBrightness = 128; // new variable, control brightness of individual led strip/pin
@@ -194,7 +195,7 @@ int pattern2Position = 315;
 int pattern3Position = 280;
 int pattern4Position = 162;
 int pattern5Position = 139;
-
+int pattern6Position = 5;
 
 // pattern stop variables:
 bool isStopped=false;
@@ -203,6 +204,8 @@ bool pattern2_isStopped = false;
 bool pattern3_isStopped = false;
 bool pattern4_isStopped = false;
 bool pattern5_isStopped = false;
+bool pattern6_isStopped = false;
+
 
 
 // pin channels for brakes: 
@@ -355,6 +358,10 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     {
         return 5;
     }
+    else if(pattern6Position>zoneBegin || pattern6Position < zoneEnd)
+    {
+        return 6;
+    }
     else
     {
       return 0;
@@ -380,6 +387,10 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
     {
         return 5;
+    }
+    else if(pattern6Position>zoneBegin && pattern6Position < zoneEnd)
+    {
+        return 6;
     }
     else
     {
@@ -415,6 +426,10 @@ void StopVehicle(int zoneBegin, int zoneEnd)
   {
     pattern5_isStopped=true;
   }
+  if(vehicle==6)
+  {
+    pattern6_isStopped=true;
+  }
   
 }
 
@@ -444,6 +459,10 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   if(vehicle==5)
   {
     pattern5_isStopped=false;
+  }
+  if(vehicle==6)
+  {
+    pattern6_isStopped=false;
   }
 }
 
@@ -745,7 +764,7 @@ void setup() {
   zone6.zoneBegin=320;
   zone6.zoneEnd=410;
 
-  zone_station.isOccupied=true;
+  zone_station.isOccupied=true; 
   zone_station.zoneBegin=411;
   zone_station.zoneEnd=4;
 
@@ -784,6 +803,9 @@ void loop() {
     }
     for (int i = 0; i < VEHICLE_SIZE; i++) {
     leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
+    }
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+    leds[(pattern6Position + i) % NUM_LEDS] = pattern6[i];
     }
 
     //FastLED.show();
@@ -929,6 +951,14 @@ void loop() {
     else
     {
       pattern5Position=pattern5Position;
+    }
+    if(isStopped==false && pattern6_isStopped==false && estopCleared)
+    {
+      pattern6Position = (pattern6Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern6Position=pattern6Position;
     }
 
    
@@ -1119,7 +1149,8 @@ void loop() {
             Brake_On14=true;
             Brake_On15=true;
             StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
-            //Serial.println("The Brakes for Zone 6 Should be ONNNNNNNNNNNNNNNN");
+            Serial.println(zone6.zoneEnd);
+            Serial.println("The Brakes for Zone 6 Should be ONNNN--------");
         }
         else 
         
@@ -1133,7 +1164,7 @@ void loop() {
             Brake_On14=false;
             Brake_On15=false;
             MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
-            Serial.println("The Brakes for Zone 6 Should be ONNNNNNNNNNNNNNNN");
+            Serial.println("The Brakes for Zone 6 Should BE OFF.!");
         }
       }
 
@@ -1181,7 +1212,8 @@ void loop() {
         }
         
         if(channel == enableChannel){
-          enableState = 1;
+          enableState = 1;a
+          Serial.println("Enable PRessed");
         }
 
         if(channel == dispatchChannel && enableState == 1 && estopCleared){
