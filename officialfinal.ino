@@ -1,171 +1,4 @@
-// Starting with the current code.
-// Modify the FastLed Arrays so that we are able to write to one pin at a time easily.
 
-// THis means we don't use fastled.show(): We use this example code. :
-
-
-// #include "FastLED.h"
-
-// #define NUM_LEDS 80
-// #define NUM_STRIPS 4
-
-// CRGB leds[NUM_LEDS];
-// CLEDController *controllers[NUM_STRIPS];
-// uint8_t gBrightness = 128;
-
-// void setup() { 
-//   controllers[0] = &FastLED.addLeds<WS2812,1>(leds, NUM_LEDS);
-//   controllers[1] = &FastLED.addLeds<WS2812,2>(leds, NUM_LEDS);
-//   controllers[2] = &FastLED.addLeds<WS2812,10>(leds, NUM_LEDS);
-//   controllers[3] = &FastLED.addLeds<WS2812,11>(leds, NUM_LEDS);
-// }
-
-// void loop() { 
-//   // draw led data for the first strand into leds
-//   fill_solid(leds, NUM_LEDS, CRGB::Red);
-//   controllers[0]->showLeds(gBrightness);
-
-//   // draw led data for the second strand into leds
-//   fill_solid(leds, NUM_LEDS, CRGB::Green);
-//   controllers[1]->showLeds(gBrightness);
-
-//   // draw led data for the third strand into leds
-//   fill_solid(leds, NUM_LEDS, CRGB::Blue);
-//   controllers[2]->showLeds(gBrightness);
-
-//   // draw led data for the first strand into leds
-//   fill_solid(leds, NUM_LEDS, CRGB::White);
-//   controllers[3]->showLeds(gBrightness);
-// }
-
-///////////////////////////////////////////////////////////////////////////////////
-
-// notes: 
-
-// our led pin is 10 BUT the brakes led pin will be SIG_PIN as OUTPUT. 
-// Fastled.show() is now: controllers[x]->showLeds(gBrightness);
-// create gBrightness variable: uint8_t gBrightness = 128;
-// create Controller Variable: CLEDController *controllers[NUM_STRIPS];
-// Fastled.clear() will be replaced with: fill_solid(leds, NUM_LEDS, CRGB::Black);
-
-// in fill_solid, replace 'leds' with the correct array we want to write to.
-
-//                              1. all variables we need to declare:
-
-// For Main Strip:
-
-//#define LED_PIN 10
-//#define NUM_LEDS 426
-
-//CLEDController *controllers[2]; // one for the main led, one for sig pin. We can change 2 -> NUM_STRIPS
-
-// CRGB leds[NUM_LEDS];
-// CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
-// CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::Red, CRGB::Red, CRGB::White};
-// CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Green ,CRGB::Green, CRGB::White}; 
-// CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::White};
-// CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::White};
-
-// int pattern1Position = 5;
-// int pattern2Position = 408;
-// int pattern3Position = 317;
-// int pattern4Position = 283;
-// int pattern5Position = 169;
-
-// bool isStopped=false;
-// bool pattern1_isStopped=false;
-// bool pattern2_isStopped = false;
-// bool pattern3_isStopped = false;
-// bool pattern4_isStopped = false;
-// bool pattern5_isStopped = false;
-
-
-// For Brakes:
-
-// no need for define. Using SIG_PIN for all brake leds.
-// #define NUM_LEDS_MUX 4
-
-// Brake1Zone2Channel=2;
-// Brake2Zone2Channel=9;
-// Brake1Zone4Channel=10;
-// Brake2Zone4Channel=11;
-// Brake1Zone6Channel=12;
-// Brake2Zone6Channel=13;
-// Brake3Zone6Channel=14;
-// Brake4Zone6Channel=15;
-
-// CRGB brake2[NUM_LEDS_MUX];
-// CRGB brake9[NUM_LEDS_MUX];
-// CRGB brake10[NUM_LEDS_MUX];
-// CRGB brake11[NUM_LEDS_MUX]; SKIP 11 FOR NOW
-// CRGB brake12[NUM_LEDS_MUX];
-// CRGB brake13[NUM_LEDS_MUX];
-// CRGB brake14[NUM_LEDS_MUX];
-// CRGB brake15[NUM_LEDS_MUX];
-
-// no need for position
-// bool Brake_On2=false;
-// bool Brake_On9=false;
-// bool Brake_On10=false;
-// bool Brake_On11=false; SKIP 11 FOR NOW
-// bool Brake_On12=false;
-// bool Brake_On13=false;
-// bool Brake_On14=false;
-// bool Brake_On15=false;
-
-//                              2. new functions to add: 
-
-/*
-
-    void turnOnBrake(int channel)
-    {
-        // set SIG_PIN to output
-        pinMode(OUTPUT);
-
-        selectChannel(channel);
-        if(channel == Brake1Zone2Channel)
-        {
-
-            // add array to the strip
-            controllers[1] = &FastLED.addLeds<WS2812,SIG_PIN>(brake2, NUM_LEDS);
-
-            // make the array all red
-            fill_solid(brake2, NUM_LEDS_MUX, CRGB::Red);
-            // show the leds
-            controllers[1]->showLeds(gBrightness);
-            Serial.println("Zone 2 Brake 111 is On");
-        }
-        else if(channel == Brake2Zone2Channel)
-        {
-            // add array to the strip
-            controllers[1] = &FastLED.addLeds<WS2812,SIG_PIN>(brake9, NUM_LEDS);
-
-            // make the array all red
-            fill_solid(brake9, NUM_LEDS_MUX, CRGB::RED);
-            // show the leds
-            controllers[1]->showLeds(gBrightness);
-            Serial.println("Zone 2 Brake 222 is On");
-        }
-        else if(){}
-        else if(){}
-    }
-
-*/ 
-
-
-//                              3.  modifying setup function: 
-
-//   controllers[0] = &FastLED.addLeds<WS2812B,LED_PIN>(leds, NUM_LEDS);
-
-//                              4. modifying loop function:
-
-// clears:    fill_solid(leds, NUM_LEDS, CRGB::Black);
-
-// vehicle logic can stay the same.
-
-// shows:     controllers[0]->showLeds(gBrightness);
-
-// before reading the buttons, set the pinMode to INPUT
 
 #include <FastLED.h>
 #include <Servo.h>
@@ -194,8 +27,8 @@ int pattern1Position = 415;
 int pattern2Position = 315;
 int pattern3Position = 280;
 int pattern4Position = 162;
-int pattern5Position = 139;
-int pattern6Position = 5;
+//int pattern5Position = 139;
+//int pattern6Position = 5;
 
 // pattern stop variables:
 bool isStopped=false;
@@ -203,8 +36,8 @@ bool pattern1_isStopped=false;
 bool pattern2_isStopped = false;
 bool pattern3_isStopped = false;
 bool pattern4_isStopped = false;
-bool pattern5_isStopped = false;
-bool pattern6_isStopped = false;
+// bool pattern5_isStopped = false;
+// bool pattern6_isStopped = false;
 
 
 
@@ -312,6 +145,10 @@ int BrakeSet6=false;
 
 const int SIG_PIN_2 = A0; // photoresistor signal pin
 
+
+int powerState = 0;
+
+
 // timing variables:
 unsigned long lastUpdateTime = 0;
 unsigned long updateInterval = 150; 
@@ -354,14 +191,14 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     {
         return 4;
     }
-    else if(pattern5Position>zoneBegin || pattern5Position < zoneEnd)
-    {
-        return 5;
-    }
-    else if(pattern6Position>zoneBegin || pattern6Position < zoneEnd)
-    {
-        return 6;
-    }
+    // else if(pattern5Position>zoneBegin || pattern5Position < zoneEnd)
+    // {
+    //     return 5;
+    // }
+    // else if(pattern6Position>zoneBegin || pattern6Position < zoneEnd)
+    // {
+    //     return 6;
+    // }
     else
     {
       return 0;
@@ -384,14 +221,14 @@ int SearchVehicle(int zoneBegin, int zoneEnd)
     {
         return 4;
     }
-    else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
-    {
-        return 5;
-    }
-    else if(pattern6Position>zoneBegin && pattern6Position < zoneEnd)
-    {
-        return 6;
-    }
+    // else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
+    // {
+    //     return 5;
+    // }
+    // else if(pattern6Position>zoneBegin && pattern6Position < zoneEnd)
+    // {
+    //     return 6;
+    // }
     else
     {
       return 0;
@@ -422,14 +259,14 @@ void StopVehicle(int zoneBegin, int zoneEnd)
   {
     pattern4_isStopped=true;
   }
-  if(vehicle==5)
-  {
-    pattern5_isStopped=true;
-  }
-  if(vehicle==6)
-  {
-    pattern6_isStopped=true;
-  }
+  // if(vehicle==5)
+  // {
+  //   pattern5_isStopped=true;
+  // }
+  // if(vehicle==6)
+  // {
+  //   pattern6_isStopped=true;
+  // }
   
 }
 
@@ -456,14 +293,14 @@ void MoveVehicle(int zoneBegin, int zoneEnd)
   {
     pattern4_isStopped=false;
   }
-  if(vehicle==5)
-  {
-    pattern5_isStopped=false;
-  }
-  if(vehicle==6)
-  {
-    pattern6_isStopped=false;
-  }
+  // if(vehicle==5)
+  // {
+  //   pattern5_isStopped=false;
+  // }
+  // if(vehicle==6)
+  // {
+  //   pattern6_isStopped=false;
+  // }
 }
 
 void stopAllVehicles()
@@ -617,8 +454,9 @@ void turnOnBrake(int channel)
             // show the leds
             controllers[1]->showLeds(gBrightness);
             Serial.println("Zone 2 Brake 22222222222 is On_______________");
+
         }
-       
+       pinMode(SIG_PIN, INPUT_PULLUP);
         //else if(){}  
 }
 void turnOffBrake(int channel)
@@ -723,6 +561,7 @@ void turnOffBrake(int channel)
             controllers[1]->showLeds(gBrightness);
             //Serial.println("Zone 2 Brake 22222222222 is On_______________");
         }
+        pinMode(SIG_PIN, INPUT_PULLUP);
 
 }
 void setup() {
@@ -762,10 +601,10 @@ void setup() {
 
   zone6.isOccupied=false;
   zone6.zoneBegin=320;
-  zone6.zoneEnd=410;
+  zone6.zoneEnd=409;
 
   zone_station.isOccupied=true; 
-  zone_station.zoneBegin=411;
+  zone_station.zoneBegin=420;
   zone_station.zoneEnd=4;
 
   controllers[0] = &FastLED.addLeds<WS2812B,LED_PIN>(leds, NUM_LEDS);
@@ -781,7 +620,7 @@ void setup() {
 void loop() {
   // Loop through all 16 channels
   unsigned long currentTime = millis();
-  int powerState = 0;
+  
   int enableState = 0;
 
   if (currentTime - lastUpdateTime >= updateInterval) {
@@ -801,12 +640,12 @@ void loop() {
     for (int i = 0; i < VEHICLE_SIZE; i++) {
     leds[(pattern4Position + i) % NUM_LEDS] = pattern4[i];
     }
-    for (int i = 0; i < VEHICLE_SIZE; i++) {
-    leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
-    }
-    for (int i = 0; i < VEHICLE_SIZE; i++) {
-    leds[(pattern6Position + i) % NUM_LEDS] = pattern6[i];
-    }
+    // for (int i = 0; i < VEHICLE_SIZE; i++) {
+    // leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
+    // }
+    // for (int i = 0; i < VEHICLE_SIZE; i++) {
+    // leds[(pattern6Position + i) % NUM_LEDS] = pattern6[i];
+    // }
 
     //FastLED.show();
     controllers[0]->showLeds(gBrightness);
@@ -944,22 +783,22 @@ void loop() {
     {
       pattern4Position=pattern4Position;
     }
-    if(isStopped==false && pattern5_isStopped==false && estopCleared)
-    {
-      pattern5Position = (pattern5Position + 1) % NUM_LEDS;
-    }
-    else
-    {
-      pattern5Position=pattern5Position;
-    }
-    if(isStopped==false && pattern6_isStopped==false && estopCleared)
-    {
-      pattern6Position = (pattern6Position + 1) % NUM_LEDS;
-    }
-    else
-    {
-      pattern6Position=pattern6Position;
-    }
+    // if(isStopped==false && pattern5_isStopped==false && estopCleared)
+    // {
+    //   pattern5Position = (pattern5Position + 1) % NUM_LEDS;
+    // }
+    // else
+    // {
+    //   pattern5Position=pattern5Position;
+    // }
+    // if(isStopped==false && pattern6_isStopped==false && estopCleared)
+    // {
+    //   pattern6Position = (pattern6Position + 1) % NUM_LEDS;
+    // }
+    // else
+    // {
+    //   pattern6Position=pattern6Position;
+    // }
 
    
   lastUpdateTime = currentTime;
@@ -968,34 +807,43 @@ void loop() {
     // Select the current channel on the multiplexer
     selectChannel(channel);
     // SIG_PIN is now input for button reading.
-    pinMode(SIG_PIN, INPUT_PULLUP);
+    
 
     // Read the button state from the current channel
     int buttonState = digitalRead(SIG_PIN);
     int sensorValue = analogRead(SIG_PIN_2);
 
     // output for the leds
-    pinMode(SIG_PIN, OUTPUT);
+    // pinMode(SIG_PIN, OUTPUT);
 
   //BLOCK ZONE LOGICCCCCCCCCCCCCCCCCCCCCC
     if(sensorValue>channelNotFlag[channel] && sensorValue>=channelFlag[channel])
     {
-      // Serial.print("Channel ");
-      // Serial.print(channel);
-      // Serial.print(": ");
-      // Serial.print(sensorValue);
-      // Serial.print(" normal value is ");
-      // Serial.println(channelNotFlag[channel]);
+      //  Serial.print("Channel ");
+      //  Serial.print(channel);
+      //  Serial.print(": ");
+      //  Serial.print(sensorValue);
+      //  Serial.print(" normal value is ");
+      //  Serial.println(channelNotFlag[channel]);
 
-      if(channel == zone5end)
-      {
-        Serial.print("Channel ");
-        Serial.print(channel);
-        Serial.print(": ");
-        Serial.print(sensorValue);
-        Serial.print(" normal value is ");
-        Serial.println(channelNotFlag[channel]);
-      }
+       if(channel == zone6end)
+       {
+         Serial.print("Channel ");
+         Serial.print(channel);
+         Serial.print(": ");
+         Serial.print(sensorValue);
+         Serial.print(" normal value is ");
+      Serial.println(channelNotFlag[channel]);
+       }
+       if(channel == zone7beg)
+       {
+         Serial.print("Channel ");
+         Serial.print(channel);
+         Serial.print(": ");
+         Serial.print(sensorValue);
+         Serial.print(" normal value is ");
+      Serial.println(channelNotFlag[channel]);
+       }
 
 
       //Vehicle enters zone 1, so this means zone 
@@ -1190,10 +1038,6 @@ void loop() {
   
 
     }
-    else
-    {
-        //Serial.println("0 sensors have been flagged rn");
-    }
 
 
     if(buttonState == HIGH)
@@ -1208,6 +1052,7 @@ void loop() {
         if(channel == estopChannel){
           estopCleared = false;
           stopAllVehicles();
+          Serial.println("e stop");
     
         }
         
@@ -1223,22 +1068,30 @@ void loop() {
 
         if(channel == dispatchChannel && enableState == 1 && stationStopCleared){
           MoveVehicle(zone_station.zoneBegin,zone_station.zoneEnd);
+
+          Serial.println("dispatch and enable");
         }
         
         if(channel == resetChannel && enableState == 1){
       
           estopCleared = true;
           stationStopCleared = true;
+          Serial.println("The reset and enable");
         }
 
         if(channel == stationChannel){
           StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
           stationStopCleared = false;
+          Serial.println("station");
         }
       }
 
     }
 
+    if(buttonState==LOW)
+    {
+        if(channel == keyChannel){powerState=0;}
+    }
     delay(10);
   }
 
