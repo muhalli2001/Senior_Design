@@ -1,0 +1,1104 @@
+
+
+#include <FastLED.h>
+#include <Servo.h>
+
+#define LED_PIN 10
+#define NUM_LEDS 426
+#define NUM_LEDS_MUX 4 //brakes are 4 leds long
+
+#define VEHICLE_SIZE 4
+
+// pattern/full led strip variables
+CRGB leds[NUM_LEDS];
+CRGB pattern1[VEHICLE_SIZE] = {CRGB::White, CRGB::Blue ,CRGB::Blue, CRGB::White}; 
+CRGB pattern2[VEHICLE_SIZE] = {CRGB::White, CRGB::BlanchedAlmond, CRGB::BlanchedAlmond, CRGB::White};
+CRGB pattern3[VEHICLE_SIZE] = {CRGB::White, CRGB::Green ,CRGB::Green, CRGB::White}; 
+CRGB pattern4[VEHICLE_SIZE] = {CRGB::White, CRGB::Yellow, CRGB::Yellow, CRGB::White};
+CRGB pattern5[VEHICLE_SIZE] = {CRGB::White, CRGB::Purple, CRGB::Purple, CRGB::White};
+CRGB pattern6[VEHICLE_SIZE] = {CRGB::White, CRGB::Navy, CRGB::Navy, CRGB::White};
+
+CLEDController *controllers[2]; // one for the main led, one for sig pin. We can change 2 -> NUM_STRIPS
+uint8_t gBrightness = 128; // new variable, control brightness of individual led strip/pin
+
+
+// pattern positions:
+int pattern1Position = 415;
+int pattern2Position = 315;
+int pattern3Position = 280;
+int pattern4Position = 162;
+//int pattern5Position = 139;
+//int pattern6Position = 5;
+
+// pattern stop variables:
+bool isStopped=false;
+bool pattern1_isStopped=false;
+bool pattern2_isStopped = false;
+bool pattern3_isStopped = false;
+bool pattern4_isStopped = false;
+// bool pattern5_isStopped = false;
+// bool pattern6_isStopped = false;
+
+
+
+// pin channels for brakes: 
+
+int Brake1Zone2Channel=2;
+int Brake2Zone2Channel=9; // zone 2
+int Brake1Zone4Channel=10;
+int Brake2Zone4Channel=11; // SKIP 11 FOR NOW // zone 4
+int Brake1Zone6Channel=12;
+int Brake2Zone6Channel=13;
+int Brake3Zone6Channel=14;
+int Brake4Zone6Channel=15;
+
+// led arrays for brakes: 
+
+CRGB brake2[NUM_LEDS_MUX];
+CRGB brake9[NUM_LEDS_MUX];
+CRGB brake10[NUM_LEDS_MUX];
+CRGB brake11[NUM_LEDS_MUX]; //SKIP 11 FOR NOW its the same as powerled
+CRGB brake12[NUM_LEDS_MUX];
+CRGB brake13[NUM_LEDS_MUX];
+CRGB brake14[NUM_LEDS_MUX];
+CRGB brake15[NUM_LEDS_MUX];
+
+// brake boolean variables: 
+
+bool Brake_On2=false;
+bool Brake_On9=false;
+bool Brake_On10=false;
+bool Brake_On11=false; //SKIP 11 FOR NOW its the same as powerled
+bool Brake_On12=false;
+bool Brake_On13=false;
+bool Brake_On14=false;
+bool Brake_On15=false;
+
+// estopclear + stationstopclear
+bool estopCleared = true;
+bool stationStopCleared = true;
+
+// mux pin outputs: 
+
+const int s0 = 2;
+const int s1 = 3;
+const int s2 = 4;
+const int s3 = 5;
+
+const int s0Pin = 6;
+const int s1Pin = 7;
+const int s2Pin = 8;
+const int s3Pin = 9;
+
+// set in initializeleds(), used in loop()
+int sensorFlagValue;
+int sensorNormalValue;
+
+// Define the signal pin for the multiplexer
+const int SIG_PIN = A1; // Connect this to the SIG pin of the multiplexer (buttons+brakes)
+const int estopChannel = 6;
+const int keyChannel = 4;
+const int enableChannel = 3;
+const int resetChannel = 8;
+const int dispatchChannel = 7;
+const int stationChannel = 5;
+const int powerLED = 11;
+
+// photoresistor channels:
+
+const int zone1beg = 2;
+const int zone1end = 4;
+const int zone2beg = 5;
+const int zone2end = 6;
+const int zone3beg = 7;
+const int zone3end = 8;
+const int zone4beg = 9;
+const int zone4end = 10;
+const int zone5beg = 11;
+const int zone5end = 12;
+const int zone6beg = 13;
+const int zone6end = 14;
+const int zone7beg = 15;
+const int zone7end = 3;
+
+bool zone1beginSensor = false;
+bool zone1endSensor = false;
+bool zone2beginSensor = false;
+bool zone2endSensor = false;
+bool zone3beginSensor = false;
+bool zone3endSensor = false;
+bool zone4beginSensor = false;
+bool zone4endSensor = false;
+bool zone5beginSensor = false;
+bool zone5endSensor = false;
+bool zone6beginSensor = false;
+bool zone6endSensor = false;
+bool zone7beginSensor = false;
+bool zone7endSensor = false;
+
+int BrakeSet1=false;
+int BrakeSet2=false;
+int BrakeSet3=false;
+int BrakeSet4=false;
+int BrakeSet5=false;
+int BrakeSet6=false;
+
+const int SIG_PIN_2 = A0; // photoresistor signal pin
+
+
+int powerState = 0;
+
+
+// timing variables:
+unsigned long lastUpdateTime = 0;
+unsigned long updateInterval = 150; 
+
+struct Zone_Info {
+    bool isOccupied;
+    int zoneBegin;
+    int zoneEnd;
+};
+
+Zone_Info zone1; 
+Zone_Info zone2;
+Zone_Info zone3;
+Zone_Info zone4;
+Zone_Info zone5;
+Zone_Info zone6;
+Zone_Info zone_station;
+
+int channelFlag[16];
+int channelNotFlag[16];
+
+
+int SearchVehicle(int zoneBegin, int zoneEnd)
+{
+
+    if(zoneBegin > zoneEnd)
+    {if(pattern1Position>zoneBegin || pattern1Position<zoneEnd)
+    {
+      return 1;
+    }
+    else if(pattern2Position>zoneBegin || pattern2Position < zoneEnd)
+    {
+      return 2;
+    }
+    else if(pattern3Position>zoneBegin || pattern3Position < zoneEnd)
+    {
+      return 3;
+    }
+    else if(pattern4Position>zoneBegin || pattern4Position < zoneEnd)
+    {
+        return 4;
+    }
+    // else if(pattern5Position>zoneBegin || pattern5Position < zoneEnd)
+    // {
+    //     return 5;
+    // }
+    // else if(pattern6Position>zoneBegin || pattern6Position < zoneEnd)
+    // {
+    //     return 6;
+    // }
+    else
+    {
+      return 0;
+    }
+      
+    }
+    if(pattern1Position>zoneBegin && pattern1Position<zoneEnd)
+    {
+      return 1;
+    }
+    else if(pattern2Position>zoneBegin && pattern2Position < zoneEnd)
+    {
+      return 2;
+    }
+    else if(pattern3Position>zoneBegin && pattern3Position < zoneEnd)
+    {
+      return 3;
+    }
+    else if(pattern4Position>zoneBegin && pattern4Position < zoneEnd)
+    {
+        return 4;
+    }
+    // else if(pattern5Position>zoneBegin && pattern5Position < zoneEnd)
+    // {
+    //     return 5;
+    // }
+    // else if(pattern6Position>zoneBegin && pattern6Position < zoneEnd)
+    // {
+    //     return 6;
+    // }
+    else
+    {
+      return 0;
+    }
+}
+
+void StopVehicle(int zoneBegin, int zoneEnd)
+{
+  int vehicle = SearchVehicle(zoneBegin, zoneEnd);
+
+  if(vehicle==0)
+  {
+    return;
+  }
+  if(vehicle==1)
+  {
+    pattern1_isStopped=true;
+  }
+  if(vehicle==2)
+  {
+    pattern2_isStopped=true;
+  }
+  if(vehicle==3)
+  {
+    pattern3_isStopped=true;
+  }
+  if(vehicle==4)
+  {
+    pattern4_isStopped=true;
+  }
+  // if(vehicle==5)
+  // {
+  //   pattern5_isStopped=true;
+  // }
+  // if(vehicle==6)
+  // {
+  //   pattern6_isStopped=true;
+  // }
+  
+}
+
+void MoveVehicle(int zoneBegin, int zoneEnd)
+{
+  int vehicle = SearchVehicle(zoneBegin, zoneEnd);
+  if(vehicle==0)
+  {
+    return;
+  }
+  if(vehicle==1)
+  {
+    pattern1_isStopped=false;
+  }
+  if(vehicle==2)
+  {
+    pattern2_isStopped=false;
+  }
+  if(vehicle==3)
+  {
+    pattern3_isStopped=false;
+  }
+  if(vehicle==4)
+  {
+    pattern4_isStopped=false;
+  }
+  // if(vehicle==5)
+  // {
+  //   pattern5_isStopped=false;
+  // }
+  // if(vehicle==6)
+  // {
+  //   pattern6_isStopped=false;
+  // }
+}
+
+void stopAllVehicles()
+{
+  isStopped=true;
+}
+
+void moveAllVehicles()
+{
+  isStopped=false;
+}
+
+void turnOnPowerLED(){
+  digitalWrite(powerLED,HIGH);
+}
+
+void initializeLEDS(){
+  for (int channel = 0; channel < 16; channel++) {
+    selectChannel(channel);
+    channelNotFlag[channel] = analogRead(SIG_PIN_2);
+  }
+
+  fill_solid(leds, NUM_LEDS, CRGB::White);
+  //FastLED.show(); 
+  controllers[0]->showLeds(gBrightness);
+  delay(1500); 
+
+  for (int channel = 0; channel < 16; channel++) {
+    selectChannel(channel);
+    channelFlag[channel]= analogRead(SIG_PIN_2);
+  }
+ 
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  //FastLED.show();
+  controllers[0]->showLeds(gBrightness);
+}
+
+// Function to select a channel on the multiplexer
+void selectChannel(int channel) {
+  // Calculate the binary representation of the channel
+  digitalWrite(s0, bitRead(channel, 0));
+  digitalWrite(s1, bitRead(channel, 1));
+  digitalWrite(s2, bitRead(channel, 2));
+  digitalWrite(s3, bitRead(channel, 3));
+
+  digitalWrite(s0Pin, bitRead(channel, 0));
+  digitalWrite(s1Pin, bitRead(channel, 1));    
+  digitalWrite(s2Pin, bitRead(channel, 2));
+  digitalWrite(s3Pin, bitRead(channel, 3));
+
+}
+
+void turnOnBrake(int channel)
+{
+        // set SIG_PIN to output
+        pinMode(SIG_PIN, OUTPUT);
+
+        selectChannel(channel);
+        if(channel == Brake1Zone2Channel)//channel 2
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake2, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake2, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 111111111 is On_______________");
+        }
+        else if(channel == Brake2Zone2Channel)// channel 9
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake9, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake9, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake1Zone4Channel) // channel 10
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake10, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake10, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake2Zone4Channel) // channel 11
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake11, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake11, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake1Zone6Channel) // channel 12
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake12, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake12, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake2Zone6Channel) // channel 13
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake13, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake13, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake3Zone6Channel) // channel 14
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake14, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake14, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake4Zone6Channel) // channel 15
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake15, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake15, NUM_LEDS_MUX, CRGB::Green);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            Serial.println("Zone 2 Brake 22222222222 is On_______________");
+
+        }
+       pinMode(SIG_PIN, INPUT_PULLUP);
+        //else if(){}  
+}
+void turnOffBrake(int channel)
+{
+        // set SIG_PIN to output
+        pinMode(SIG_PIN, OUTPUT);
+        selectChannel(channel);
+
+        if(channel == Brake1Zone2Channel)//channel 2
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake2, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake2, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 111111111 is OFF!______________");
+        }
+        else if(channel == Brake2Zone2Channel)// channel 9
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake9, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake9, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is OFF!_______________");
+        }
+        else if(channel == Brake1Zone4Channel) // channel 10
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake10, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake10, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("brake on channel 10 offfffffffff");
+        }
+        else if(channel == Brake2Zone4Channel) // channel 11
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake11, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake11, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("brake on channel 11 offffffffff");
+        }
+        else if(channel == Brake1Zone6Channel) // channel 12
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake12, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake12, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake2Zone6Channel) // channel 13
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake13, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake13, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake3Zone6Channel) // channel 14
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake14, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake14, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        else if(channel == Brake4Zone6Channel) // channel 15
+        {
+            // add array to the strip
+            controllers[1] = &FastLED.addLeds<WS2812B,SIG_PIN>(brake15, NUM_LEDS);
+
+            // make the array all red
+            fill_solid(brake15, NUM_LEDS_MUX, CRGB::Black);
+
+            // show the leds
+            controllers[1]->showLeds(gBrightness);
+            //Serial.println("Zone 2 Brake 22222222222 is On_______________");
+        }
+        pinMode(SIG_PIN, INPUT_PULLUP);
+
+}
+void setup() {
+  // Initialize the multiplexer control pins as OUTPUT
+  pinMode(s0, OUTPUT);
+  pinMode(s1, OUTPUT);
+  pinMode(s2, OUTPUT);
+  pinMode(s3, OUTPUT);
+  
+  pinMode(s0Pin, OUTPUT);
+  pinMode(s1Pin, OUTPUT);
+  pinMode(s2Pin, OUTPUT);
+  pinMode(s3Pin, OUTPUT);
+
+  // Initialize the signal pin as INPUT
+  pinMode(SIG_PIN, INPUT_PULLUP);
+
+  zone1.isOccupied=false;
+  zone1.zoneBegin=5;
+  zone1.zoneEnd=53;
+
+  zone2.isOccupied=false;
+  zone2.zoneBegin=54;
+  zone2.zoneEnd=147;
+
+  zone3.isOccupied=false;
+  zone3.zoneBegin=148;
+  zone3.zoneEnd=171;
+  
+  zone4.isOccupied=false;
+  zone4.zoneBegin=171;
+  zone4.zoneEnd=285;
+
+  zone5.isOccupied=false;
+  zone5.zoneBegin=286;
+  zone5.zoneEnd=319;
+
+  zone6.isOccupied=false;
+  zone6.zoneBegin=320;
+  zone6.zoneEnd=409;
+
+  zone_station.isOccupied=true; 
+  zone_station.zoneBegin=420;
+  zone_station.zoneEnd=4;
+
+  controllers[0] = &FastLED.addLeds<WS2812B,LED_PIN>(leds, NUM_LEDS);
+  //FastLED.setBrightness(100);
+
+  // Initialize serial communication for debugging
+  Serial.begin(9600);
+  initializeLEDS();
+  //FastLED.clear();
+
+}
+
+void loop() {
+  // Loop through all 16 channels
+  unsigned long currentTime = millis();
+  
+  int enableState = 0;
+
+  if (currentTime - lastUpdateTime >= updateInterval) {
+    //FastLED.clear();
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+    leds[(pattern1Position + i) % NUM_LEDS] = pattern1[i];
+    }
+
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+      leds[(pattern2Position + i) % NUM_LEDS] = pattern2[i];
+    }
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+    leds[(pattern3Position + i) % NUM_LEDS] = pattern3[i];
+    }
+    for (int i = 0; i < VEHICLE_SIZE; i++) {
+    leds[(pattern4Position + i) % NUM_LEDS] = pattern4[i];
+    }
+    // for (int i = 0; i < VEHICLE_SIZE; i++) {
+    // leds[(pattern5Position + i) % NUM_LEDS] = pattern5[i];
+    // }
+    // for (int i = 0; i < VEHICLE_SIZE; i++) {
+    // leds[(pattern6Position + i) % NUM_LEDS] = pattern6[i];
+    // }
+
+    //FastLED.show();
+    controllers[0]->showLeds(gBrightness);
+
+
+    if(Brake_On12==true)
+    {
+      if(BrakeSet1==false)
+      {
+        Serial.println("BONNNNNNNNNN");
+        turnOnBrake(Brake1Zone6Channel);
+        turnOnBrake(Brake2Zone6Channel);
+        turnOnBrake(Brake3Zone6Channel);
+        turnOnBrake(Brake4Zone6Channel);
+      }
+      BrakeSet1=true;
+      BrakeSet2=false;
+      
+      //selectChannel(Brake1Zone6Channel);
+      //digitalWrite(SIG_PIN, HIGH);
+    }
+    else if(Brake_On12==false)
+    {
+      //Serial.println("----------BRAKES SHUD BE OFFFF---------");
+      //Serial.println(BrakeSet2);
+      if(BrakeSet2==false)
+      {
+        // Serial.println("-------------------------------------------------------------------------------------");
+        // Serial.println("-------------------------------------------------------------------------------------");
+        // Serial.println("-------------------------------------------------------------------------------------");
+        // Serial.println("-------------------------------------------------------------------------------------");
+        // Serial.println("-------------------------------------------------------------------------------------");
+        // Serial.println("-------------------------------------------------------------------------------------");
+        //Serial.println("BOFFFFFFFFFF");
+        turnOffBrake(Brake1Zone6Channel);
+        turnOffBrake(Brake2Zone6Channel);
+        turnOffBrake(Brake3Zone6Channel);
+        turnOffBrake(Brake4Zone6Channel);
+      }
+      //Serial.println("The Brakes are OFF and have been set to OFFFFF");
+      BrakeSet2=true;
+      BrakeSet1=false;
+      
+      //selectChannel(Brake1Zone6Channel);
+      //digitalWrite(SIG_PIN, LOW);
+    }
+    if(Brake_On2==true)
+    {
+      if(BrakeSet3==false)
+      {
+        turnOnBrake(Brake1Zone2Channel);
+        turnOnBrake(Brake2Zone2Channel);
+      }
+      BrakeSet3=true;
+      BrakeSet4=false;
+      
+    }
+    else if(Brake_On2==false)
+    {
+      if(BrakeSet4==false)
+      {
+        turnOffBrake(Brake1Zone2Channel);
+        turnOffBrake(Brake2Zone2Channel);
+      }
+      BrakeSet4=true;
+      BrakeSet3=false;
+      
+    }
+    if(Brake_On10==true)
+    {
+      if(BrakeSet5==false)
+      {
+        turnOnBrake(Brake1Zone4Channel);
+        turnOnBrake(Brake2Zone4Channel);
+      }
+      BrakeSet5=true;
+      BrakeSet6=false;
+      
+    }
+    else if(Brake_On10==false)
+    {
+      if(BrakeSet6==false)
+      {
+        turnOffBrake(Brake1Zone4Channel);
+        turnOffBrake(Brake2Zone4Channel);
+      }
+      BrakeSet6=true;
+      BrakeSet5=false;
+      
+    }
+
+    // if(Brake_On2==true && Brake_On9==true)
+    // {
+    //     turnOnBrake(Brake1Zone2Channel);
+    //     turnOnBrake(Brake2Zone2Channel);
+    // }
+    // if(Brake_On2==false && Brake_On9==false)
+    // {
+    //     turnOffBrake(Brake1Zone2Channel);
+    //     turnOffBrake(Brake2Zone2Channel);
+    // }
+
+    //if pattern 1 
+    if(isStopped==false && pattern1_isStopped==false && estopCleared)
+    {
+      pattern1Position = (pattern1Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern1Position=pattern1Position;
+    }
+      
+    if(isStopped==false && pattern2_isStopped==false && estopCleared)
+    {
+      pattern2Position = (pattern2Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern2Position=pattern2Position;
+    }
+
+    if(isStopped==false && pattern3_isStopped==false && estopCleared)
+    {
+      pattern3Position = (pattern3Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern3Position=pattern3Position;
+    }
+    if(isStopped==false && pattern4_isStopped==false && estopCleared)
+    {
+      pattern4Position = (pattern4Position + 1) % NUM_LEDS;
+    }
+    else
+    {
+      pattern4Position=pattern4Position;
+    }
+    // if(isStopped==false && pattern5_isStopped==false && estopCleared)
+    // {
+    //   pattern5Position = (pattern5Position + 1) % NUM_LEDS;
+    // }
+    // else
+    // {
+    //   pattern5Position=pattern5Position;
+    // }
+    // if(isStopped==false && pattern6_isStopped==false && estopCleared)
+    // {
+    //   pattern6Position = (pattern6Position + 1) % NUM_LEDS;
+    // }
+    // else
+    // {
+    //   pattern6Position=pattern6Position;
+    // }
+
+   
+  lastUpdateTime = currentTime;
+
+  for (int channel = 0; channel < 16; channel++) {
+    // Select the current channel on the multiplexer
+    selectChannel(channel);
+    // SIG_PIN is now input for button reading.
+    
+
+    // Read the button state from the current channel
+    int buttonState = digitalRead(SIG_PIN);
+    int sensorValue = analogRead(SIG_PIN_2);
+
+    // output for the leds
+    // pinMode(SIG_PIN, OUTPUT);
+
+  //BLOCK ZONE LOGICCCCCCCCCCCCCCCCCCCCCC
+    if(sensorValue>channelNotFlag[channel] && sensorValue>=channelFlag[channel])
+    {
+      //  Serial.print("Channel ");
+      //  Serial.print(channel);
+      //  Serial.print(": ");
+      //  Serial.print(sensorValue);
+      //  Serial.print(" normal value is ");
+      //  Serial.println(channelNotFlag[channel]);
+
+       if(channel == zone6end)
+       {
+         Serial.print("Channel ");
+         Serial.print(channel);
+         Serial.print(": ");
+         Serial.print(sensorValue);
+         Serial.print(" normal value is ");
+      Serial.println(channelNotFlag[channel]);
+       }
+       if(channel == zone7beg)
+       {
+         Serial.print("Channel ");
+         Serial.print(channel);
+         Serial.print(": ");
+         Serial.print(sensorValue);
+         Serial.print(" normal value is ");
+      Serial.println(channelNotFlag[channel]);
+       }
+
+
+      //Vehicle enters zone 1, so this means zone 
+      if(channel == zone1beg)
+      {
+       zone_station.isOccupied = false;
+       zone1.isOccupied = true;
+        
+      }
+        //If it trips zone 1 end vehicle leaves zone 1. 
+      if(channel == zone1end)
+      {
+        //If zone 2 is occupied stop at the end of zone 1
+        if(zone2.isOccupied)
+        {
+          StopVehicle(zone1.zoneBegin, zone1.zoneEnd);
+        }
+        else 
+        //If its free then move vehicle in zone 1
+        {
+          MoveVehicle(zone1.zoneBegin, zone1.zoneEnd);
+        }
+      }
+
+
+      if(channel == zone2beg)
+      {
+        zone1.isOccupied = false;
+        zone2.isOccupied = true;
+        //turn ON brake for zone 2
+  
+        
+      }
+
+       if(channel == zone2end)
+      {
+         if(zone3.isOccupied)
+        {
+            //turnOnBrake(Brake1Zone2Channel);
+            //turnOnBrake(Brake2Zone2Channel);
+            Brake_On2=true;
+            Brake_On9=true;
+          StopVehicle(zone2.zoneBegin, zone2.zoneEnd);
+        }
+        else 
+        
+        {
+            //turnOffBrake(Brake1Zone2Channel);
+            //turnOffBrake(Brake2Zone2Channel);
+            Brake_On2=false;
+            Brake_On9=false;
+            MoveVehicle(zone2.zoneBegin, zone2.zoneEnd);
+            // turn OFF brakes for zone 2.
+        }
+      }
+
+
+//IF zone 3 gets opened we want vehicle in zone 2 to keep moving until
+ //zone 3 beginning (the first photoresistor). Check to see if the second photoresistor
+ //( start of zone) is open or not
+ //if not opened then stop at the first photoresistor
+//Make it stop at end of zone when zone 4 
+
+
+
+      if(channel == zone3beg)
+      {
+        zone2.isOccupied = false;
+        zone3.isOccupied = true;
+       
+      }
+      if(channel == zone3end)
+      {
+
+         if(zone4.isOccupied)
+        {
+          StopVehicle(zone3.zoneBegin, zone3.zoneEnd);
+        }
+        else
+        {
+          MoveVehicle(zone3.zoneBegin, zone3.zoneEnd);
+        }
+        
+      }
+
+      if(channel == zone4beg)
+      {
+       zone3.isOccupied = false;
+       zone4.isOccupied = true;
+       
+      }
+      if(channel == zone4end)
+      {
+       if(zone5.isOccupied)
+        {
+            //turnOnBrake(Brake1Zone4Channel);
+            //turnOnBrake(Brake2Zone4Channel);
+            Brake_On10=true;
+            Brake_On11=true;
+            StopVehicle(zone4.zoneBegin, zone4.zoneEnd);
+        }
+        else 
+        
+        {
+            //turnOffBrake(Brake1Zone4Channel);
+            //turnOffBrake(Brake2Zone4Channel);
+            Brake_On10=false;
+            Brake_On11=false;
+            MoveVehicle(zone4.zoneBegin, zone4.zoneEnd);
+        }
+      }
+
+
+
+      if(channel == zone5beg)
+      {
+       zone4.isOccupied = false;
+       zone5.isOccupied = true;
+      }
+
+
+      if(channel == zone5end)
+      {
+        if(zone6.isOccupied)
+        {
+          StopVehicle(zone5.zoneBegin, zone5.zoneEnd);
+        }
+        else 
+        {
+          MoveVehicle(zone5.zoneBegin, zone5.zoneEnd);
+        }
+      }
+
+      if(channel == zone6beg)
+      {
+       zone5.isOccupied = false;
+       zone6.isOccupied = true;
+      }
+
+      if(channel == zone6end)
+      {
+         if(zone_station.isOccupied)
+        {
+            //turnOnBrake(Brake1Zone6Channel);
+            //turnOnBrake(Brake2Zone6Channel);
+            //turnOnBrake(Brake3Zone6Channel);
+            //turnOnBrake(Brake4Zone6Channel);
+            // digitalWrite(SIG_PIN, HIGH);
+            Brake_On12=true;
+            Brake_On13=true;
+            Brake_On14=true;
+            Brake_On15=true;
+            StopVehicle(zone6.zoneBegin, zone6.zoneEnd);
+            Serial.println(zone6.zoneEnd);
+            Serial.println("The Brakes for Zone 6 Should be ONNNN--------");
+        }
+        else 
+        
+        {
+            //turnOffBrake(Brake1Zone6Channel);
+            //turnOffBrake(Brake2Zone6Channel);
+            //turnOffBrake(Brake3Zone6Channel);
+            //turnOffBrake(Brake4Zone6Channel);
+            Brake_On12=false;
+            Brake_On13=false;
+            Brake_On14=false;
+            Brake_On15=false;
+            MoveVehicle(zone6.zoneBegin, zone6.zoneEnd);
+            Serial.println("The Brakes for Zone 6 Should BE OFF.!");
+        }
+      }
+
+      if(channel == zone7beg)
+      {
+       zone6.isOccupied = false;
+       zone_station.isOccupied = true;
+
+      }
+
+      if(channel == zone7end) 
+      {
+       if(zone1.isOccupied)
+        {
+          StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+        }
+        else 
+        
+        {
+          MoveVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+        }
+      }
+  
+
+    }
+
+
+    if(buttonState == HIGH)
+    {
+      if(channel == keyChannel){
+        turnOnPowerLED();
+        powerState = 1;
+      }
+      
+      if(powerState == 1){
+
+        if(channel == estopChannel){
+          estopCleared = false;
+          stopAllVehicles();
+          Serial.println("e stop");
+    
+        }
+        
+        if(channel == enableChannel){
+          enableState = 1;
+          Serial.println("Enable PRessed");
+        }
+
+        if(channel == dispatchChannel && enableState == 1 && estopCleared){
+          Serial.println("dispatch pressed");
+          moveAllVehicles();
+        }
+
+        if(channel == dispatchChannel && enableState == 1 && stationStopCleared){
+          MoveVehicle(zone_station.zoneBegin,zone_station.zoneEnd);
+
+          Serial.println("dispatch and enable");
+        }
+        
+        if(channel == resetChannel && enableState == 1){
+      
+          estopCleared = true;
+          stationStopCleared = true;
+          Serial.println("The reset and enable");
+        }
+
+        if(channel == stationChannel){
+          StopVehicle(zone_station.zoneBegin, zone_station.zoneEnd);
+          stationStopCleared = false;
+          Serial.println("station");
+        }
+      }
+
+    }
+
+    if(buttonState==LOW)
+    {
+        if(channel == keyChannel){powerState=0;}
+    }
+    delay(10);
+  }
+
+  if(powerState == 0){
+    digitalWrite(powerLED, LOW);
+    stopAllVehicles();
+  }
+  }
+
+}
